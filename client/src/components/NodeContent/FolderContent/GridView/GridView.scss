@@ -1,0 +1,9 @@
+@import '../../../../global/globalCssVariables';
+
+.gridView-wrapper {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, 250px);
+  column-gap: 20px;
+  row-gap: 30px;
+  height: fit-content;
+}

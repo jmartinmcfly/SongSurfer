@@ -1,0 +1,28 @@
+@import '../../global/globalCssVariables';
+
+// TODO: Update this CSS to include relevant node information!
+.nodeView {
+  // NodeView JSON object
+  .nodeView-json {
+    background-color: $selected-color;
+    overflow: hidden;
+    font-size: 12px;
+    padding: 20px;
+    border-radius: 5px;
+  }
+
+  // Breadcrumb container
+  .nodeView-breadcrumb {
+    display: flex;
+    padding: 10px;
+    justify-content: left;
+    align-items: center;
+    border-bottom: $standard-border;
+    padding-left: 20px;
+  }
+
+  // Container for node view
+  .nodeView-content {
+    padding: 20px;
+  }
+}

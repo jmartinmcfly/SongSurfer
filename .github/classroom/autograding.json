@@ -1,0 +1,24 @@
+{
+  "tests": [
+    {
+      "name": "Backend Test",
+      "setup": "cd server && yarn install",
+      "run": "cd server && yarn test",
+      "input": "",
+      "output": "",
+      "comparison": "included",
+      "timeout": 3,
+      "points": null
+    },
+    {
+      "name": "CreateNode Test (Lab)",
+      "setup": "cd server && yarn install",
+      "run": "cd server && yarn labtest",
+      "input": "",
+      "output": "",
+      "comparison": "included",
+      "timeout": 2,
+      "points": null
+    }
+  ]
+}

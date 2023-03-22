@@ -1,0 +1,27 @@
+{
+    "node1": {
+        "title": "Boston Cream Donut Info",
+        "nodeId": "S1DpcM67",
+        "type": "text",
+        "content": "https://bakerbynature.com/wp-content/uploads/2021/08/Boston-Cream-Donuts-1-1-of-1.jpg",
+        "filePath": {
+            "path": [
+                "S1DpcM67"
+            ],
+            "children": []
+        }
+    },
+
+    "node": {
+        "title": "Boston Cream Donut",
+        "nodeId": "image.u1deL6",
+        "type": "image",
+        "content": "https://bakerbynature.com/wp-content/uploads/2021/08/Boston-Cream-Donuts-1-1-of-1.jpg",
+        "filePath": {
+            "path": [
+                "image.u1deL6"
+            ],
+            "children": []
+        }
+    }
+}

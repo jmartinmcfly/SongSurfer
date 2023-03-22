@@ -1,0 +1,19 @@
+@import '../../global/globalCssVariables';
+
+.loading {
+  height: 100vh;
+  width: 100vw;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 20px;
+
+  .loading-message {
+    background-color: $selected-color;
+    border-radius: 10px;
+    width: 50%;
+    padding: 10px;
+    user-select: none;
+  }
+}

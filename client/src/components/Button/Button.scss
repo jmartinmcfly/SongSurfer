@@ -1,0 +1,25 @@
+@import '../../global/globalCssVariables';
+
+.button {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: fit-content;
+  height: 70%;
+  font-size: 15px;
+
+  // Font options
+  font-family: $header-font;
+
+  // Color
+  background-color: $secondary-background-color;
+  padding: 3px 10px;
+  border-radius: 5px;
+  gap: 5px;
+  transition: 0.3s;
+  cursor: pointer;
+
+  &:hover {
+    background-color: darken($secondary-background-color, 20);
+  }
+}
