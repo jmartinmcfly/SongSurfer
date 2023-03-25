@@ -1,9 +1,9 @@
 {
-  "name": "basic-hypermedia",
+  "name": "SongSurfer",
   "version": "1.0.0",
-  "description": "basic hypermedia",
-  "author": "Jinoo Hong, Peter Li, Xinzhe Chai & Geireann Lindfield Roberts",
-	"license": "MIT",
+  "description": "Natural language interface for Spotify",
+  "author": "Jake Martin",
+	"license": "",
   "scripts": {
     "start": "node error.js",
     "install": "node error.js",

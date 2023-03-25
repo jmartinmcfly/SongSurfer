@@ -1,1 +1,1 @@
-export * from './NodeGateway'
+export * from './BackendGateway'
