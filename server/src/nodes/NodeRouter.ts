@@ -1,14 +1,7 @@
 import express, { Request, Response, Router } from 'express'
 import { rest } from 'lodash'
 import { MongoClient } from 'mongodb'
-import {
-  INode,
-  INodeProperty,
-  TreeWrapper,
-  IServiceResponse,
-  isINode,
-  failureServiceResponse,
-} from '../types'
+import { IServiceResponse, failureServiceResponse } from '../types'
 import { NodeGateway } from './NodeGateway'
 const bodyJsonParser = require('body-parser').json()
 
@@ -39,7 +32,8 @@ export class NodeRouter {
      */
 
     MyRouter.post('/create', async (req: Request, res: Response) => {
-      try { 
+      /*
+      try {
         const node = req.body.node
         console.log(node)
         if (!isINode(node)) {
@@ -50,11 +44,11 @@ export class NodeRouter {
           const response = await this.nodeGateway.createNode(node)
           res.status(200).send(response)
         }
-      } catch(e) {
-        //500 Internal Server Error
+      } catch (e) {
+        // 500 Internal Server Error
         res.status(500).send(e.message)
       }
-      
+      */
     })
 
     /**
@@ -63,6 +57,7 @@ export class NodeRouter {
      * @param res response object to send to client
      */
     MyRouter.get('/get/:nodeId', async (req: Request, res: Response) => {
+      /*
       try {
         const nodeId = req.params.nodeId
         const response: IServiceResponse<INode> = await this.nodeGateway.getNodeById(
@@ -72,6 +67,7 @@ export class NodeRouter {
       } catch (e) {
         res.status(500).send(e.message)
       }
+      */
     })
 
     /**
@@ -80,6 +76,7 @@ export class NodeRouter {
      * @param res response object to send to client
      */
     MyRouter.put('/:nodeId', bodyJsonParser, async (req: Request, res: Response) => {
+      /*
       try {
         const nodeId = req.params.nodeId
         const toUpdate: INodeProperty[] = req.body.data
@@ -88,27 +85,8 @@ export class NodeRouter {
       } catch (e) {
         res.status(500).send(e.message)
       }
+      */
     })
-
-    /**
-     * Request to move the node with the given nodeId to the given parentId
-     * @param req request object coming from client
-     * @param res response object to send to client
-     */
-    MyRouter.put(
-      '/move/:nodeId/:newParentId',
-      bodyJsonParser,
-      async (req: Request, res: Response) => {
-        try {
-          const nodeId = req.params.nodeId
-          const newParentId = req.params.newParentId
-          const response = await this.nodeGateway.moveNode(nodeId, newParentId)
-          res.status(200).send(response)
-        } catch (e) {
-          res.status(500).send(e.message)
-        }
-      }
-    )
 
     /**
      * Request to delete the node with the given nodeId
@@ -116,6 +94,7 @@ export class NodeRouter {
      * @param res response object to send to client
      */
     MyRouter.delete('/:nodeId', async (req: Request, res: Response) => {
+      /*
       try {
         const nodeId = req.params.nodeId
         const response = await this.nodeGateway.deleteNode(nodeId)
@@ -123,37 +102,7 @@ export class NodeRouter {
       } catch (e) {
         res.status(500).send(e.message)
       }
-    })
-
-    /**
-     * Request to retrieve node with all its children
-     * @param req request object coming from client
-     * @param res response object to send to client
-     */
-    MyRouter.get('/root/:nodeId', async (req: Request, res: Response) => {
-      try {
-        const nodeId = req.params.nodeId
-        const response: IServiceResponse<TreeWrapper> =
-          await this.nodeGateway.getTreeByRoot(nodeId)
-        res.status(200).send(response)
-      } catch (e) {
-        res.status(500).send(e.message)
-      }
-    })
-
-    /**
-     * Request to retrieve all nodes that does not have parent
-     * @param req request object coming from client
-     * @param res response object to send to client
-     */
-    MyRouter.get('/roots', async (req: Request, res: Response) => {
-      try {
-        const response: IServiceResponse<TreeWrapper[]> =
-          await this.nodeGateway.getRoots()
-        res.status(200).send(response)
-      } catch (e) {
-        res.status(500).send(e.message)
-      }
+      */
     })
   }
 

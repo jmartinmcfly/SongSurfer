@@ -2,7 +2,7 @@ import express from 'express'
 import dotenv from 'dotenv'
 import { Request, Response } from 'express'
 import { NodeRouter } from './nodes/NodeRouter'
-import cors from 'cors'
+import cors from 'cors' // cors is a package that polices cross-origin requests
 import { MongoClient } from 'mongodb'
 
 dotenv.config()
@@ -16,7 +16,7 @@ app.listen(PORT, () => {
 })
 
 app.use(cors())
-app.use(express.static('dist'))
+app.use(express.static('public'))
 app.use(express.json())
 
 const uri = process.env.DB_URI
