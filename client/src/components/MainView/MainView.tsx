@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import axios, { AxiosRequestConfig, AxiosResponse } from 'axios'
-import crypto from 'crypto'
+import uniqid from 'uniqid'
 import { useLocation } from 'react-router-dom'
 import { get, post, put, remove } from '../../BackendGateway/request'
 import {} from '../../types'
@@ -20,9 +20,10 @@ export const MainView = () => {
   const scope = 'user-read-private user-read-email'
   // [3] useEffect hooks
   useEffect(() => {
-    const newState = crypto.randomBytes(20).toString('hex')
+    const newState = uniqid()
     setState(newState)
 
+    // TODO: Move to routes
     axios.get(AUTH_ENDPOINT, {
       params: {
         client_id: CLIENT_ID,
@@ -43,8 +44,8 @@ export const MainView = () => {
 
   /**
    * [6] JSX component
-   * TODO: Add a router to handle the redirect from spotify (store token, grab access token)
-   * TODO: Test getting info: Get profile name and display it
+   * // TODO: Two routes: Login, and the MainView. Login autoredirects to spotify -> MainView
+   * // TODO: Test getting info: Get profile name and display it
    */
   return <div className="App"></div>
 }
