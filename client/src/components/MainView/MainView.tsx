@@ -1,38 +1,41 @@
-import { ChakraProvider } from '@chakra-ui/react'
 import React, { useEffect, useState } from 'react'
+import axios, { AxiosRequestConfig, AxiosResponse } from 'axios'
+import crypto from 'crypto'
 import { useLocation } from 'react-router-dom'
-import NodeGateway from '../../nodes/BackendGateway'
+import { get, post, put, remove } from '../../BackendGateway/request'
 import {} from '../../types'
-import { Header } from '../Header'
-import { LoadingScreen } from '../LoadingScreen'
 import './MainView.scss'
 
 export const MainView = () => {
   // [1] useState hooks
   const [isLoading, setIsLoading] = useState(true)
+  const [state, setState] = useState('')
 
   // [2] Constant variables
   /** Url for react-router-dom responsive URL */
-  const url = useLocation().pathname.slice(0, -1)
-  const lastUrlParam = url.substring(url.lastIndexOf('/') + 1)
-
+  const CLIENT_ID = process.env.REACT_APP_CLIENT_ID
+  const REDIRECT_URI = 'http://localhost:3000'
+  const AUTH_ENDPOINT = 'https://accounts.spotify.com/authorize'
+  const RESPONSE_TYPE = 'token'
+  const scope = 'user-read-private user-read-email'
   // [3] useEffect hooks
-  useEffect(() => {}, [])
+  useEffect(() => {
+    const newState = crypto.randomBytes(20).toString('hex')
+    setState(newState)
+
+    axios.get(AUTH_ENDPOINT, {
+      params: {
+        client_id: CLIENT_ID,
+        response_type: 'code',
+        state: newState,
+        redirect_uri: REDIRECT_URI,
+        scope: scope,
+      },
+    })
+  }, [])
 
   // [4] Button handlers
-  const example = async (node: any) => {
-    /**
-     * TODO: Implement this!
-     * After you delete the current `selectedNode`
-     * what should the new `selectedNode` be?
-     * You can use any of the frontend NodeGateway methods here
-     * which is why this is an async function!
-     *
-     * Eg. If you have a `donuts` folder with `chocolate donut`
-     * and you delete `chocolate donut` what should the new
-     * selected node be?
-     */
-  }
+  const example = async (node: any) => {}
 
   // [5] Helper functions
   /** Update our frontend root nodes from the DB */
@@ -40,14 +43,8 @@ export const MainView = () => {
 
   /**
    * [6] JSX component
-   *
-   * We use a package called Chakra for some our UI components, such as the modal.
-   * Feel free to use any packages that you would like in this repository, in fact,
-   * we encourage you to play around with this codebase!
+   * TODO: Add a router to handle the redirect from spotify (store token, grab access token)
+   * TODO: Test getting info: Get profile name and display it
    */
-  return (
-    <ChakraProvider>
-      {isLoading ? <LoadingScreen /> : <div className="main-container"></div>}
-    </ChakraProvider>
-  )
+  return <div className="App"></div>
 }
