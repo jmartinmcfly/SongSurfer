@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react'
 import axios, { AxiosRequestConfig, AxiosResponse } from 'axios'
 import uniqid from 'uniqid'
-import { useLocation } from 'react-router-dom'
+import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom'
 import { get, post, put, remove } from '../../BackendGateway/request'
+import { AuthRedirect } from '../AuthRedirect/AuthRedirect'
 import {} from '../../types'
 import './MainView.scss'
 
@@ -14,9 +15,8 @@ export const MainView = () => {
   // [2] Constant variables
   /** Url for react-router-dom responsive URL */
   const CLIENT_ID = process.env.REACT_APP_CLIENT_ID
-  const REDIRECT_URI = 'http://localhost:3000'
+  const REDIRECT_URI = 'http://localhost:3000/main'
   const AUTH_ENDPOINT = 'https://accounts.spotify.com/authorize'
-  const RESPONSE_TYPE = 'token'
   const scope = 'user-read-private user-read-email'
   // [3] useEffect hooks
   useEffect(() => {
@@ -47,5 +47,27 @@ export const MainView = () => {
    * // TODO: Two routes: Login, and the MainView. Login autoredirects to spotify -> MainView
    * // TODO: Test getting info: Get profile name and display it
    */
-  return <div className="App"></div>
+  return (
+    <div className="App">
+      {'Hello World'}
+      {state != '' && (
+        <Routes>
+          <Route
+            path="/auth"
+            element={
+              <AuthRedirect
+                authEndpoint={AUTH_ENDPOINT}
+                clientId={CLIENT_ID}
+                redirectUri={REDIRECT_URI}
+                scope={scope}
+                state={state}
+              />
+            }
+          />
+          <Route path="/main" element={<MainView />} />
+          <Route element={<div> {'Not Found'} </div>} />
+        </Routes>
+      )}
+    </div>
+  )
 }
