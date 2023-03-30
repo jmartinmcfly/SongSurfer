@@ -6,6 +6,7 @@ import { get, post, put, remove } from '../../BackendGateway/request'
 import { AuthRedirect } from '../AuthRedirect/AuthRedirect'
 import {} from '../../types'
 import './MainView.scss'
+import { MainInterface } from '../MainInterface/MainInterface'
 
 export const MainView = () => {
   // [1] useState hooks
@@ -22,18 +23,7 @@ export const MainView = () => {
   useEffect(() => {
     const newState = uniqid()
     setState(newState)
-
-    // TODO: Move to routes
-    axios.get(AUTH_ENDPOINT, {
-      params: {
-        client_id: CLIENT_ID,
-        response_type: 'code',
-        state: newState,
-        redirect_uri: REDIRECT_URI,
-        scope: scope,
-      },
-    })
-  }, [])
+  })
 
   // [4] Button handlers
   const example = async (node: any) => {}
@@ -44,7 +34,6 @@ export const MainView = () => {
 
   /**
    * [6] JSX component
-   * // TODO: Two routes: Login, and the MainView. Login autoredirects to spotify -> MainView
    * // TODO: Test getting info: Get profile name and display it
    */
   return (
@@ -64,7 +53,7 @@ export const MainView = () => {
               />
             }
           />
-          <Route path="/main" element={<MainView />} />
+          <Route path="/main" element={<MainInterface state={state} />} />
           <Route element={<div> {'Not Found'} </div>} />
         </Routes>
       )}
