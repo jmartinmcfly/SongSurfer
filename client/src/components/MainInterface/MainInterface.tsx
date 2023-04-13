@@ -1,5 +1,13 @@
-import React, { useEffect } from 'react'
+import React, { useState, useEffect } from 'react'
+import { Buffer } from 'buffer'
+import axios from 'axios'
 import { useLocation } from 'react-router-dom'
+import { AuthHandler } from '../AuthHandler/AuthHandler'
+import {
+  IServiceResponse,
+  successfulServiceResponse,
+  failureServiceResponse,
+} from '../../types'
 
 interface MainInterfaceProps {
   state: string
@@ -7,13 +15,19 @@ interface MainInterfaceProps {
 
 // TODO: Get an auth token and display profile data
 export const MainInterface = (props: MainInterfaceProps) => {
-  const { search } = useLocation()
-  const params = new URLSearchParams(search)
-  const code = params.get('code')
+  const [accessToken, setAccessToken] = useState('')
+  const [refreshToken, setRefreshToken] = useState('')
+  const location = useLocation()
 
-  // grab auth token, repeat this every 15 minutes
-  // grab profile data once we have an auth token
-  useEffect(() => {})
-
-  return <div> {'hi' + code} </div>
+  // TODO: Grab and dipslay profile data. Testing that API credentials work.
+  return (
+    <div>
+      <AuthHandler
+        setAccessToken={setAccessToken}
+        setRefreshToken={setRefreshToken}
+        refreshToken={refreshToken}
+      />
+      {'hi' + accessToken}{' '}
+    </div>
+  )
 }

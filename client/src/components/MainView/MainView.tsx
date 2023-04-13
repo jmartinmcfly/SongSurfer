@@ -23,7 +23,7 @@ export const MainView = () => {
   useEffect(() => {
     const newState = uniqid()
     setState(newState)
-  })
+  }, [])
 
   // [4] Button handlers
   const example = async (node: any) => {}
