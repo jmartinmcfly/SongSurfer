@@ -8,7 +8,11 @@ import {} from '../../types'
 import './MainView.scss'
 import { MainInterface } from '../MainInterface/MainInterface'
 
-export const MainView = () => {
+interface MainViewProps {
+  style: any
+}
+
+export const MainView = (props: MainViewProps) => {
   // [1] useState hooks
   const [isLoading, setIsLoading] = useState(true)
   const [state, setState] = useState('')
@@ -18,7 +22,13 @@ export const MainView = () => {
   const CLIENT_ID = process.env.REACT_APP_CLIENT_ID
   const REDIRECT_URI = 'http://localhost:3000/main'
   const AUTH_ENDPOINT = 'https://accounts.spotify.com/authorize'
-  const scope = 'user-read-private user-read-email'
+  const scope =
+    'user-read-private user-read-email ' +
+    'playlist-read-private playlist-modify-private playlist-modify-public ' +
+    'user-read-playback-state user-modify-playback-state user-read-currently-playing ' +
+    'user-library-read user-library-modify ' +
+    'streaming'
+
   // [3] useEffect hooks
   useEffect(() => {
     const newState = uniqid()
@@ -32,12 +42,19 @@ export const MainView = () => {
   /** Update our frontend root nodes from the DB */
   const helperExample = async () => {}
 
+  const basicStyle: React.CSSProperties = {
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'center',
+  }
+
   /**
    * [6] JSX component
    * // TODO: Test getting info: Get profile name and display it
    */
   return (
-    <div className="App">
+    <div className="App" style={basicStyle}>
       {'Hello World'}
       {state != '' && (
         <Routes>
