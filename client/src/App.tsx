@@ -4,6 +4,7 @@ import { MainView } from './components/MainView'
 const style = {
   display: 'flex',
   justifyContent: 'center',
+  width: '100%',
 }
 
 const App = () => {

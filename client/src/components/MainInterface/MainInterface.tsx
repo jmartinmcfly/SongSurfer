@@ -4,6 +4,7 @@ import axios from 'axios'
 import { useLocation } from 'react-router-dom'
 import { AuthHandler } from '../AuthHandler/AuthHandler'
 import { MusicPlayer } from '../MusicPlayer/MusicPlayer'
+import { PlaylistView } from '../PlaylistView/PlaylistView'
 import {
   IServiceResponse,
   successfulServiceResponse,
@@ -61,6 +62,7 @@ export const MainInterface = (props: MainInterfaceProps) => {
     flexDirection: 'column',
     justifyContent: 'center',
     alignItems: 'center',
+    width: '100%',
   }
 
   return (
@@ -78,6 +80,8 @@ export const MainInterface = (props: MainInterfaceProps) => {
         tracks={{}}
         token={accessToken}
       />
+      <div style={{ marginBottom: '30px' }}></div>
+      <PlaylistView token={accessToken} />
     </div>
   )
 }

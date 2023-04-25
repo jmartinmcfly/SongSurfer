@@ -47,6 +47,11 @@ export const MainView = (props: MainViewProps) => {
     flexDirection: 'column',
     alignItems: 'center',
     justifyContent: 'center',
+    width: '100%',
+  }
+
+  const width100: React.CSSProperties = {
+    width: '100%',
   }
 
   /**
