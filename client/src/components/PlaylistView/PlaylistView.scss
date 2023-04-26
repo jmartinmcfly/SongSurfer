@@ -1,0 +1,36 @@
+.flexRow {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+}
+
+.playlistHeader,
+.playlistTracksHeader,
+.trackView {
+  justify-content: space-between;
+  width: 100%;
+}
+
+.trackNumber,
+.trackNumberHeader {
+  width: 40px;
+  text-align: center;
+}
+
+.trackTitle,
+.trackTitleHeader {
+  width: 300px;
+  text-align: left;
+}
+
+.trackAlbum,
+.trackAlbumHeader {
+  width: 200px;
+  text-align: left;
+}
+
+.trackLength,
+.trackLengthHeader {
+  width: 80px;
+  text-align: center;
+}

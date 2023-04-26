@@ -82,8 +82,6 @@ export const PlaylistView = (props: playlistViewProps) => {
         if (!state) {
           return
         }
-        console.log('changed')
-        console.log(state.track_window.current_track)
         setCurrentTrack(state.track_window.current_track)
         setIsPlaying(!state.paused)
       })
@@ -150,7 +148,7 @@ export const PlaylistView = (props: playlistViewProps) => {
     display: 'flex',
     flexDirection: 'column',
     alignItems: 'center',
-    width: '100%',
+    width: '80%',
   }
 
   const playlistImageStyle: React.CSSProperties = {
@@ -194,12 +192,33 @@ export const PlaylistView = (props: playlistViewProps) => {
     marginRight: '16px',
   }
 
-  const playlistItemStyle: React.CSSProperties = {
-    marginLeft: '16px',
-    marginRight: '16px',
+  const playlistItemStyle: React.CSSProperties = {}
+
+  const trackNumberHeaderStyle: React.CSSProperties = {
+    width: '16px',
+    marginRight: '5px',
   }
 
-  // TODO: remove test track
+  const trackTitleHeaderStyle: React.CSSProperties = {
+    width: '200px',
+  }
+
+  const trackAlbumHeaderStyle: React.CSSProperties = {
+    width: '150px',
+  }
+
+  const trackLengthHeaderStyle: React.CSSProperties = {
+    display: 'flex',
+    justifyContent: 'flex-end',
+    width: '78px',
+    paddingRight: '2px',
+  }
+
+  const numberAndTitleHeaderStyle: React.CSSProperties = {
+    display: 'flex',
+    flexDirection: 'row',
+  }
+
   return (
     <div className={'playlistContainer'} style={playlistContainerStyle}>
       <div className={'playlistHeader'} style={flexRowStyle}>
@@ -215,31 +234,23 @@ export const PlaylistView = (props: playlistViewProps) => {
       <div className={'separator'} style={separatorStyle} />
       <div className={'playlistTracksContainer'} style={playlistTracksContainerStyle}>
         <div className={'playlistTracksHeader'} style={playlistTracksHeaderStyle}>
-          <div className={'trackNumberHeader'}>#</div>
-          <div className={'trackTitleHeader'}>Title</div>
-          <div className={'trackAlbumHeader'}>Album</div>
-          <div className={'trackLengthHeader'}>
+          <div className={'numberAndTitleHeader'} style={numberAndTitleHeaderStyle}>
+            <div className={'trackNumberHeader'} style={trackNumberHeaderStyle}>
+              #
+            </div>
+            <div className={'trackTitleHeader'} style={trackTitleHeaderStyle}>
+              Title
+            </div>
+          </div>
+          <div className={'trackAlbumHeader'} style={trackAlbumHeaderStyle}>
+            Album
+          </div>
+          <div className={'trackLengthHeader'} style={trackLengthHeaderStyle}>
             <ClockIcon style={clockStyle} />
           </div>
         </div>
         <div className={'separator'} style={separatorStyle} />
         <div className={'playlistTracks'} style={playlistItemStyle}>
-          <div className={'playlistItem'}>
-            {/* TODO: remove test track
-            <TrackView
-              trackNumber={1}
-              albumPhotoUrl={
-                'https://i.scdn.co/image/ab67616d00001e02ff9ca10b55ce82ae553c8228'
-              }
-              trackName="testTrack"
-              artistName="testArtist"
-              albumName={'TestAlbum'}
-              isLiked={true}
-              trackLength={68012}
-              player={props.player}
-            />
-            */}
-          </div>
           {trackViewComps}
         </div>
       </div>

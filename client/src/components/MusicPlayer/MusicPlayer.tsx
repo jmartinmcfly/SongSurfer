@@ -78,8 +78,6 @@ export const MusicPlayer = (props: MusicPlayerProps) => {
         // Add listeners
         player.addListener('ready', ({ device_id }: any) => {
           // player.togglePlay()
-          console.log('read')
-          console.log(player)
           props.setDeviceId(device_id)
           console.log('Ready with Device ID', device_id)
         })

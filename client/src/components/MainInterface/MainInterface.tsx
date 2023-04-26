@@ -52,9 +52,6 @@ export const MainInterface = (props: MainInterfaceProps) => {
                 headers: { Authorization: 'Bearer ' + accessToken },
               })
               .then((resp) => {
-                //TODO: remove console
-                console.log('setting curplay')
-                console.log(playlist)
                 setCurrentPlaylist(resp.data)
               })
           }

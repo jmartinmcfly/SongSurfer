@@ -25,70 +25,6 @@ interface trackViewProps {
 }
 
 // TODO: Fix track styling
-// styles
-const flexRowStyle: React.CSSProperties = {
-  display: 'flex',
-  flexDirection: 'row',
-  justifyContent: 'space-between',
-}
-
-const trackContainerStyle: React.CSSProperties = {
-  display: 'flex',
-  flexDirection: 'row',
-  justifyContent: 'space-between',
-  alignItems: 'flex-end',
-}
-
-const trackTextContainerStyle: React.CSSProperties = {
-  display: 'flex',
-  flexDirection: 'column',
-}
-
-const albumPhotoStyle = {
-  height: '35px',
-  width: '35px',
-  marginRight: '10px',
-}
-
-const heartIconStyle: React.CSSProperties = {
-  height: '22px',
-  width: '22px',
-}
-
-const playPauseIconStyle = heartIconStyle
-
-const trackInfoContainerStyle: React.CSSProperties = {
-  display: 'flex',
-  flexDirection: 'row',
-  alignItems: 'flex-end',
-  marginLeft: '90px',
-}
-
-const trackNameStyle: React.CSSProperties = {
-  display: 'flex',
-  fontSize: '16px',
-  marginBottom: '2px',
-}
-
-const artistNameStyle: React.CSSProperties = {
-  display: 'flex',
-  fontSize: '12px',
-}
-
-const albumNameStyle: React.CSSProperties = {
-  marginLeft: '7px',
-}
-
-const heartIconContainerStyle: React.CSSProperties = {
-  marginRight: '20px',
-}
-
-const separatorStyle: React.CSSProperties = {
-  width: '100%',
-  height: '1px',
-  backgroundColor: 'black',
-  margin: '16px 0px 16px 0px',
-}
 
 // TODO: add a click handler to the heart icons
 export const TrackView = (props: trackViewProps) => {
@@ -102,8 +38,6 @@ export const TrackView = (props: trackViewProps) => {
 
   // determine how to handle play / pause / number for render
   useEffect(() => {
-    console.log('current track: ' + props.trackName)
-    console.log('is current track: ' + props.isCurrentTrack)
     if (props.isCurrentTrack) {
       if (props.isPlaying) {
         setLeftmostIcon(
@@ -165,9 +99,109 @@ export const TrackView = (props: trackViewProps) => {
     setIsLiked(false)
   }
 
+  // styles
+  const flexRowStyle: React.CSSProperties = {
+    display: 'flex',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  }
+
+  const trackContainerStyle: React.CSSProperties = {
+    display: 'flex',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginLeft: '16px',
+    marginRight: '16px',
+  }
+
+  const trackTextContainerStyle: React.CSSProperties = {
+    display: 'flex',
+    flexDirection: 'column',
+  }
+
+  const albumPhotoStyle = {
+    height: '35px',
+    width: '35px',
+    marginRight: '10px',
+  }
+
+  const heartIconStyle: React.CSSProperties = {
+    height: '18px',
+    width: '18px',
+  }
+
+  const playPauseIconStyle: React.CSSProperties = {
+    height: '12px',
+    width: '12px',
+  }
+
+  const trackInfoContainerStyle: React.CSSProperties = {
+    display: 'flex',
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    width: '200px',
+    overflow: 'hidden',
+    whiteSpace: 'nowrap',
+    textOverflow: 'ellipsis',
+  }
+
+  const trackNameStyle: React.CSSProperties = {
+    display: 'flex',
+    fontSize: '16px',
+    marginBottom: '2px',
+  }
+
+  const artistNameStyle: React.CSSProperties = {
+    display: 'flex',
+    fontSize: '12px',
+  }
+
+  const albumNameStyle: React.CSSProperties = {
+    width: '150px',
+    overflow: 'hidden',
+    whiteSpace: 'nowrap',
+    textOverflow: 'ellipsis',
+  }
+
+  const heartIconContainerStyle: React.CSSProperties = {
+    marginRight: '20px',
+  }
+
+  const separatorStyle: React.CSSProperties = {
+    width: '100%',
+    height: '1px',
+    backgroundColor: 'black',
+    margin: '16px 0px 16px 0px',
+  }
+
+  const trackNumberStyle: React.CSSProperties = {
+    width: '16px',
+    marginRight: '5px',
+  }
+
+  const trackTitleStyle: React.CSSProperties = {
+    width: '200px',
+  }
+
+  const trackAlbumStyle: React.CSSProperties = {
+    width: '150px',
+  }
+
+  const trackLengthStyle: React.CSSProperties = {
+    width: '50px',
+  }
+
+  const trackNumberAndInfoStyle: React.CSSProperties = {
+    display: 'flex',
+    flexDirection: 'row',
+    alignItems: 'center',
+  }
+
   // TODO: NEXT SESSION START HERE
 
-  // TODO enliven like button
+  // fix styling
+
   return (
     <div
       className={'trackContainerWrapper'}
@@ -175,15 +209,19 @@ export const TrackView = (props: trackViewProps) => {
       onMouseLeave={handleMouseLeave}
     >
       <div className={'trackContainer'} style={trackContainerStyle}>
-        <div className={'trackNumber'}>{leftmostIcon}</div>
-        <div className={'trackInfoContainer'} style={trackInfoContainerStyle}>
-          <img src={props.albumPhotoUrl} style={albumPhotoStyle} />
-          <div className={'trackTextContainer'} style={trackTextContainerStyle}>
-            <div className={'trackName'} style={trackNameStyle}>
-              {props.trackName}
-            </div>
-            <div className={'artistName'} style={artistNameStyle}>
-              {props.artistName}
+        <div className={'trackNumberAndInfo'} style={trackNumberAndInfoStyle}>
+          <div className={'trackNumber'} style={trackNumberStyle}>
+            {leftmostIcon}
+          </div>
+          <div className={'trackInfoContainer'} style={trackInfoContainerStyle}>
+            <img src={props.albumPhotoUrl} style={albumPhotoStyle} />
+            <div className={'trackTextContainer'} style={trackTextContainerStyle}>
+              <div className={'trackName'} style={trackNameStyle}>
+                {props.trackName}
+              </div>
+              <div className={'artistName'} style={artistNameStyle}>
+                {props.artistName}
+              </div>
             </div>
           </div>
         </div>
