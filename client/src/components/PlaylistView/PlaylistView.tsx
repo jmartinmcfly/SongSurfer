@@ -6,6 +6,8 @@ import RewindIcon from '../Svg/rewindIcon'
 
 interface playlistViewProps {
   token: string
+  currentPlaylist: any
+  handlePlayPause: React.Dispatch<React.SetStateAction<boolean>>
 }
 
 // styles
@@ -29,6 +31,67 @@ export const PlaylistView = (props: playlistViewProps) => {
   //TODO reset state after testing
   const [playlistImageUrl, setPlaylistImageUrl] = useState('test')
   const [playlistName, setPlaylistName] = useState('test')
+  const [likedDict, setLikedDict] = useState<Record<string, boolean>>({})
+  const [trackViewComps, setTrackViewComps] = useState<JSX.Element[]>([])
+  // hooks
+
+  // fetch liked songs data
+  useEffect(() => {
+    if (props.currentPlaylist) {
+      let songIds: string[] = []
+
+      // extract song ids from playlist
+      for (const item of props.currentPlaylist.tracks.items) {
+        songIds.push(item.track.id)
+      }
+
+      // get isLiked data from spotify
+      const result = axios
+        .get('https://api.spotify.com/v1/me/tracks/contains', {
+          headers: { Authorization: 'Bearer ' + props.token },
+          params: {
+            ids: songIds.join(','),
+          },
+        })
+        .then((response) => {
+          // create new liked dict
+          let newLikedDict: Record<string, boolean> = {}
+          for (let i: number = 0; i < songIds.length; i++) {
+            const songId: string = songIds[i]
+            const isLiked: boolean = response.data[i]
+            newLikedDict[songId] = isLiked
+          }
+          setLikedDict(newLikedDict)
+        })
+    }
+  }, [props.currentPlaylist])
+
+  // construct a list of jsx TrackView components to render
+  // NOTE: this maybe won't load until the "Check User's Saved Tracks" call returns
+  // if desired, this can be optimized later
+  useEffect(() => {
+    if (props.currentPlaylist) {
+      const newTrackViewComps: JSX.Element[] = props.currentPlaylist.tracks.items.map(
+        (item: any, index: number) => {
+          return (
+            <TrackView
+              key={item.track.id}
+              trackNumber={index + 1}
+              albumPhotoUrl={item.track.album.images[0].url}
+              trackName={item.track.name}
+              artistName={item.track.artists[0].name}
+              albumName={item.track.album.name}
+              isLiked={likedDict[item.track.id]}
+              trackLength={item.track.duration_ms}
+              handlePlayPause={props.handlePlayPause}
+            />
+          )
+        }
+      )
+
+      setTrackViewComps(newTrackViewComps)
+    }
+  }, [likedDict])
 
   // styles
 
@@ -97,6 +160,7 @@ export const PlaylistView = (props: playlistViewProps) => {
     marginRight: '16px',
   }
 
+  // TODO: remove test track
   return (
     <div className={'playlistContainer'} style={playlistContainerStyle}>
       <div className={'playlistHeader'} style={flexRowStyle}>
@@ -121,9 +185,6 @@ export const PlaylistView = (props: playlistViewProps) => {
         </div>
         <div className={'separator'} style={separatorStyle} />
         <div className={'playlistTracks'} style={playlistItemStyle}>
-          {
-            //TODO: make map after testing
-          }
           <div className={'playlistItem'}>
             <TrackView
               trackNumber={1}
@@ -135,8 +196,10 @@ export const PlaylistView = (props: playlistViewProps) => {
               albumName={'TestAlbum'}
               isLiked={true}
               trackLength={68012}
+              handlePlayPause={props.handlePlayPause}
             />
           </div>
+          {trackViewComps}
         </div>
       </div>
     </div>

@@ -11,6 +11,7 @@ interface MusicPlayerProps {
   currentTrack: any
   tracks: any
   token: string
+  setSpotifyPlayer: React.Dispatch<SetStateAction<any>>
   // setter for device id from parent
   setDeviceId: React.Dispatch<SetStateAction<string>>
   deviceId: string
@@ -70,7 +71,9 @@ export const MusicPlayer = (props: MusicPlayerProps) => {
           },
         })
 
+        // TODO: factor out player state into props
         setPlayer(player)
+        props.setSpotifyPlayer(player)
 
         // Add listeners
         player.addListener('ready', ({ device_id }: any) => {

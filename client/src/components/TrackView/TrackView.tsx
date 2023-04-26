@@ -11,8 +11,10 @@ interface trackViewProps {
   albumName: string
   isLiked: boolean
   trackLength: number
+  handlePlayPause: React.Dispatch<React.SetStateAction<boolean>>
 }
 
+// TODO: Fix track styling
 // styles
 const flexRowStyle: React.CSSProperties = {
   display: 'flex',
@@ -78,6 +80,11 @@ const separatorStyle: React.CSSProperties = {
 
 // TODO: add a click handler to the heart icons
 export const TrackView = (props: trackViewProps) => {
+  const [isHovering, setisHovering] = useState<boolean>(false)
+  // TODO: NEXT SESSION START HERE
+  // on hover, show play icon with a click handler that playPauses the song
+  // you may need to pass a different prop to this component to handle the playPause if not playing
+
   return (
     <div className={'trackContainerWrapper'}>
       <div className={'trackContainer'} style={trackContainerStyle}>
