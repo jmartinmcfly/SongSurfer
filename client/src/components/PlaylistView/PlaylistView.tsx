@@ -117,6 +117,7 @@ export const PlaylistView = (props: playlistViewProps) => {
               isLiked={likedDict[item.track.id]}
               trackLength={item.track.duration_ms}
               trackUri={item.track.uri}
+              trackId={item.track.id}
               player={props.player}
               deviceId={props.deviceId}
               currentPlaylist={props.currentPlaylist}

@@ -16,6 +16,7 @@ interface trackViewProps {
   isLiked: boolean
   trackLength: number
   trackUri: string
+  trackId: string
   player: any
   deviceId: string
   currentPlaylist: any
@@ -95,6 +96,8 @@ export const TrackView = (props: trackViewProps) => {
   const [leftmostIcon, setLeftmostIcon] = useState<JSX.Element>(
     <div>{props.trackNumber}</div>
   )
+  // NOTE: Bug risk. This may not update in all circumstances but I think its fine
+  const [isLiked, setIsLiked] = useState<boolean>(props.isLiked)
   // hooks
 
   // determine how to handle play / pause / number for render
@@ -130,7 +133,6 @@ export const TrackView = (props: trackViewProps) => {
   }
 
   const handleStartPlay = () => {
-    // TODO: request maybe malformed
     axios.put(
       'https://api.spotify.com/v1/me/player/play',
       {
@@ -145,9 +147,25 @@ export const TrackView = (props: trackViewProps) => {
   const handleTogglePlay = () => {
     props.player.togglePlay()
   }
+
+  const handleLike = () => {
+    axios.put(
+      'https://api.spotify.com/v1/me/tracks',
+      { ids: [props.trackId] },
+      { headers: { Authorization: 'Bearer ' + props.token } }
+    )
+    setIsLiked(true)
+  }
+
+  const handleUnlike = () => {
+    axios.delete('https://api.spotify.com/v1/me/tracks', {
+      data: { ids: [props.trackId] },
+      headers: { Authorization: 'Bearer ' + props.token },
+    })
+    setIsLiked(false)
+  }
+
   // TODO: NEXT SESSION START HERE
-  // TODO on hover, show play icon with a click handler that playPauses the song
-  // you may need to pass a different prop to this component to handle the playPause if not playing
 
   // TODO enliven like button
   return (
@@ -174,10 +192,10 @@ export const TrackView = (props: trackViewProps) => {
         </div>
         <div className={'trackLength'} style={flexRowStyle}>
           <div className={'heartIconContainer'} style={heartIconContainerStyle}>
-            {props.isLiked ? (
-              <FullHeartIcon style={heartIconStyle} />
+            {isLiked ? (
+              <FullHeartIcon style={heartIconStyle} onClick={handleUnlike} />
             ) : (
-              <EmptyHeartIcon style={heartIconStyle} />
+              <EmptyHeartIcon style={heartIconStyle} onClick={handleLike} />
             )}
           </div>
           {Math.floor((props.trackLength / 1000) % 60) < 10
