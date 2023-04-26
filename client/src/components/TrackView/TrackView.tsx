@@ -2,8 +2,12 @@ import React, { useEffect, useState } from 'react'
 import axios from 'axios'
 import EmptyHeartIcon from '../Svg/emptyHeartIcon'
 import FullHeartIcon from '../Svg/fullHeartIcon'
+import PlayIcon from '../Svg/playIcon'
+import PauseIcon from '../Svg/pauseIcon'
 
+// TODO: Trackview needs to know if its currently playing
 interface trackViewProps {
+  token: string
   trackNumber: number
   albumPhotoUrl: string
   trackName: string
@@ -11,7 +15,12 @@ interface trackViewProps {
   albumName: string
   isLiked: boolean
   trackLength: number
-  handlePlayPause: React.Dispatch<React.SetStateAction<boolean>>
+  trackUri: string
+  player: any
+  deviceId: string
+  currentPlaylist: any
+  isCurrentTrack: boolean
+  isPlaying: boolean
 }
 
 // TODO: Fix track styling
@@ -44,6 +53,8 @@ const heartIconStyle: React.CSSProperties = {
   height: '22px',
   width: '22px',
 }
+
+const playPauseIconStyle = heartIconStyle
 
 const trackInfoContainerStyle: React.CSSProperties = {
   display: 'flex',
@@ -80,15 +91,73 @@ const separatorStyle: React.CSSProperties = {
 
 // TODO: add a click handler to the heart icons
 export const TrackView = (props: trackViewProps) => {
-  const [isHovering, setisHovering] = useState<boolean>(false)
+  const [isHovering, setIsHovering] = useState<boolean>(false)
+  const [leftmostIcon, setLeftmostIcon] = useState<JSX.Element>(
+    <div>{props.trackNumber}</div>
+  )
+  // hooks
+
+  // determine how to handle play / pause / number for render
+  useEffect(() => {
+    console.log('current track: ' + props.trackName)
+    console.log('is current track: ' + props.isCurrentTrack)
+    if (props.isCurrentTrack) {
+      if (props.isPlaying) {
+        setLeftmostIcon(
+          <PauseIcon style={playPauseIconStyle} onClick={handleTogglePlay} />
+        )
+      } else {
+        setLeftmostIcon(
+          <PlayIcon style={playPauseIconStyle} onClick={handleTogglePlay} />
+        )
+      }
+    } else {
+      if (isHovering) {
+        setLeftmostIcon(<PlayIcon style={playPauseIconStyle} onClick={handleStartPlay} />)
+      } else {
+        setLeftmostIcon(<div>{props.trackNumber}</div>)
+      }
+    }
+  }, [isHovering, props.isCurrentTrack, props.isPlaying])
+
+  // event handlers
+
+  const handleMouseEnter = () => {
+    setIsHovering(true)
+  }
+  const handleMouseLeave = () => {
+    setIsHovering(false)
+  }
+
+  const handleStartPlay = () => {
+    // TODO: request maybe malformed
+    axios.put(
+      'https://api.spotify.com/v1/me/player/play',
+      {
+        device_id: props.deviceId,
+        context_uri: props.currentPlaylist.uri,
+        offset: { uri: props.trackUri },
+      },
+      { headers: { Authorization: 'Bearer ' + props.token } }
+    )
+  }
+
+  const handleTogglePlay = () => {
+    props.player.togglePlay()
+  }
   // TODO: NEXT SESSION START HERE
-  // on hover, show play icon with a click handler that playPauses the song
+  // TODO on hover, show play icon with a click handler that playPauses the song
   // you may need to pass a different prop to this component to handle the playPause if not playing
 
+  // TODO enliven like button
   return (
-    <div className={'trackContainerWrapper'}>
+    <div
+      className={'trackContainerWrapper'}
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
+    >
       <div className={'trackContainer'} style={trackContainerStyle}>
-        <div className={'trackNumber'}>{props.trackNumber}</div>
+        <div className={'trackNumber'}>{leftmostIcon}</div>
         <div className={'trackInfoContainer'} style={trackInfoContainerStyle}>
           <img src={props.albumPhotoUrl} style={albumPhotoStyle} />
           <div className={'trackTextContainer'} style={trackTextContainerStyle}>

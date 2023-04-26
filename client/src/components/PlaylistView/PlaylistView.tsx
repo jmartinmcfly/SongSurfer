@@ -7,7 +7,8 @@ import RewindIcon from '../Svg/rewindIcon'
 interface playlistViewProps {
   token: string
   currentPlaylist: any
-  handlePlayPause: React.Dispatch<React.SetStateAction<boolean>>
+  player: any
+  deviceId: string
 }
 
 // styles
@@ -31,6 +32,9 @@ export const PlaylistView = (props: playlistViewProps) => {
   //TODO reset state after testing
   const [playlistImageUrl, setPlaylistImageUrl] = useState('test')
   const [playlistName, setPlaylistName] = useState('test')
+  const [currentTrack, setCurrentTrack] = useState<any>(null)
+  const [isPlaying, setIsPlaying] = useState<boolean>(false)
+
   const [likedDict, setLikedDict] = useState<Record<string, boolean>>({})
   const [trackViewComps, setTrackViewComps] = useState<JSX.Element[]>([])
   // hooks
@@ -63,6 +67,26 @@ export const PlaylistView = (props: playlistViewProps) => {
           }
           setLikedDict(newLikedDict)
         })
+
+      // get current track
+      const result2 = props.player.getCurrentState().then((state: any) => {
+        if (!state) {
+          console.error('User is not playing music through the Web Playback SDK')
+          return
+        }
+        setCurrentTrack(state.track_window.current_track)
+        setIsPlaying(!state.paused)
+      })
+
+      props.player.addListener('player_state_changed', (state: any) => {
+        if (!state) {
+          return
+        }
+        console.log('changed')
+        console.log(state.track_window.current_track)
+        setCurrentTrack(state.track_window.current_track)
+        setIsPlaying(!state.paused)
+      })
     }
   }, [props.currentPlaylist])
 
@@ -73,8 +97,17 @@ export const PlaylistView = (props: playlistViewProps) => {
     if (props.currentPlaylist) {
       const newTrackViewComps: JSX.Element[] = props.currentPlaylist.tracks.items.map(
         (item: any, index: number) => {
+          let isCurrentTrack: boolean = false
+          if (currentTrack) {
+            console.log('currentTrack.name: ' + currentTrack.name)
+            console.log('item.track.name: ' + item.track.name)
+            console.log('tracks equal: ' + (currentTrack.name == item.track.name))
+            isCurrentTrack = currentTrack.name == item.track.name
+          }
+
           return (
             <TrackView
+              token={props.token}
               key={item.track.id}
               trackNumber={index + 1}
               albumPhotoUrl={item.track.album.images[0].url}
@@ -83,7 +116,12 @@ export const PlaylistView = (props: playlistViewProps) => {
               albumName={item.track.album.name}
               isLiked={likedDict[item.track.id]}
               trackLength={item.track.duration_ms}
-              handlePlayPause={props.handlePlayPause}
+              trackUri={item.track.uri}
+              player={props.player}
+              deviceId={props.deviceId}
+              currentPlaylist={props.currentPlaylist}
+              isCurrentTrack={isCurrentTrack}
+              isPlaying={isPlaying}
             />
           )
         }
@@ -91,7 +129,7 @@ export const PlaylistView = (props: playlistViewProps) => {
 
       setTrackViewComps(newTrackViewComps)
     }
-  }, [likedDict])
+  }, [likedDict, currentTrack, isPlaying])
 
   // styles
 
@@ -186,6 +224,7 @@ export const PlaylistView = (props: playlistViewProps) => {
         <div className={'separator'} style={separatorStyle} />
         <div className={'playlistTracks'} style={playlistItemStyle}>
           <div className={'playlistItem'}>
+            {/* TODO: remove test track
             <TrackView
               trackNumber={1}
               albumPhotoUrl={
@@ -196,8 +235,9 @@ export const PlaylistView = (props: playlistViewProps) => {
               albumName={'TestAlbum'}
               isLiked={true}
               trackLength={68012}
-              handlePlayPause={props.handlePlayPause}
+              player={props.player}
             />
+            */}
           </div>
           {trackViewComps}
         </div>

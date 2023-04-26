@@ -141,7 +141,8 @@ export const MainInterface = (props: MainInterfaceProps) => {
         <PlaylistView
           token={accessToken}
           currentPlaylist={currentPlaylist}
-          handlePlayPause={spotifyPlayer.togglePlay()}
+          player={spotifyPlayer}
+          deviceId={deviceId}
         />
       )}
     </div>
