@@ -3,9 +3,9 @@ import axios, { AxiosRequestConfig, AxiosResponse } from 'axios'
 import uniqid from 'uniqid'
 import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom'
 import { get, post, put, remove } from '../../BackendGateway/request'
-import { AuthRedirect } from '../AuthRedirect/AuthRedirect'
+import { AuthRedirect } from '../Auth/AuthRedirect/AuthRedirect'
 import {} from '../../types'
-import './MainView.scss'
+import './RouteContainer.scss'
 import { MainInterface } from '../MainInterface/MainInterface'
 
 interface MainViewProps {

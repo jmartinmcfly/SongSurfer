@@ -6,7 +6,7 @@ import {
   IServiceResponse,
   successfulServiceResponse,
   failureServiceResponse,
-} from '../../types'
+} from '../../../types'
 
 interface AuthHandlerProps {
   setAccessToken: React.Dispatch<React.SetStateAction<string>>

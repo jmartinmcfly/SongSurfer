@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react'
 import axios from 'axios'
 import { TrackView } from '../TrackView/TrackView'
-import ClockIcon from '../Svg/clockIcon'
-import RewindIcon from '../Svg/rewindIcon'
+import ClockIcon from '../../Utils/Svg/clockIcon'
+import RewindIcon from '../../Utils/Svg/rewindIcon'
 
 interface playlistViewProps {
   token: string

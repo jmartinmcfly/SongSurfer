@@ -2,17 +2,24 @@ import React, { useState, useEffect } from 'react'
 import { Buffer } from 'buffer'
 import axios from 'axios'
 import { useLocation } from 'react-router-dom'
-import { AuthHandler } from '../AuthHandler/AuthHandler'
-import { MusicPlayer } from '../MusicPlayer/MusicPlayer'
-import { PlaylistView } from '../PlaylistView/PlaylistView'
+import { AuthHandler } from '../Auth/AuthHandler/AuthHandler'
+import { MusicPlayer } from '../Spotify/MusicPlayer/MusicPlayer'
+import { PlaylistView } from '../Spotify/PlaylistView/PlaylistView'
 import {
   IServiceResponse,
   successfulServiceResponse,
   failureServiceResponse,
 } from '../../types'
+import { ChatVisualizer } from '../Chat/ChatVisualizer/ChatVisualizer'
+import { ChatInput } from '../Chat/ChatInput/ChatInput'
 
 interface MainInterfaceProps {
   state: string
+}
+
+enum Role {
+  User = 'user',
+  Assistant = 'assistant',
 }
 
 // TODO: Get an auth token and display profile data
@@ -25,6 +32,14 @@ export const MainInterface = (props: MainInterfaceProps) => {
   const [deviceId, setDeviceId] = useState<string>('')
   const [currentPlaylist, setCurrentPlaylist] = useState(null)
   const location = useLocation()
+
+  // TODO: implement chatHistory logic
+  const [fullChatHistory, setFullChatHistory] = useState<
+    { role: Role; content: string }[]
+  >([])
+  const [truncatedChatHistory, setTruncatedChatHistory] = useState<
+    { role: Role; content: string }[]
+  >([])
 
   // fetch profile data once access token is set
   useEffect(() => {
@@ -93,6 +108,8 @@ export const MainInterface = (props: MainInterfaceProps) => {
     }
   }, [deviceId])
 
+  // API calls:
+
   async function fetchProfileData(): Promise<any> {
     console.log('the token for profile is: ')
     console.log(accessToken)
@@ -109,6 +126,35 @@ export const MainInterface = (props: MainInterfaceProps) => {
     return await result.data
   }
 
+  // Event handlers:
+
+  // TODO: submit logic
+  const onChatSubmit = (message: string) => {
+    // Token manager
+    const newMessage = trimTokens(message, truncatedChatHistory)
+
+    // append message prelude
+    const messagePrelude =
+      'System message: Please pay extra attention to "actionType". When iterating on a playlist, use "add" to add songs, and "remove" to remove songs. Only use "replace" when starting a totally new playlist.\nUser: '
+    const finalMessage = messagePrelude + newMessage
+
+    // TODO: call openai chat api on finalMessage
+
+    // TODO: .then() process the response
+    // TODO: update fullChatHistory and truncatedChatHistory
+    // TODO: call spotify api to update playlist
+  }
+
+  // TODO
+  const trimTokens = (
+    message: string,
+    truncChatHistory: { role: Role; content: string }[]
+  ): string => {
+    return ''
+  }
+
+  // Styles:
+
   const basicStyle: React.CSSProperties = {
     display: 'flex',
     flexDirection: 'column',
@@ -117,6 +163,16 @@ export const MainInterface = (props: MainInterfaceProps) => {
     width: '100%',
   }
 
+  const chatDivStyle: React.CSSProperties = {
+    display: 'flex',
+    flexDirection: 'column',
+    justifyContent: 'center',
+    alignItems: 'center',
+    width: '80%',
+  }
+
+  // TODO: flesh out chat components.
+  // TODO: Fix user image url
   return (
     <div style={basicStyle}>
       <AuthHandler
@@ -125,6 +181,15 @@ export const MainInterface = (props: MainInterfaceProps) => {
         refreshToken={refreshToken}
       />
       {profileData && 'welcome ' + profileData.display_name}
+      <div className={'chatDiv'} style={chatDivStyle}>
+        <ChatVisualizer
+          chatHistory={fullChatHistory}
+          userImageUrl={
+            'https://i.scdn.co/image/ab67616d00001e02ff9ca10b55ce82ae553c8228'
+          }
+        />
+        <ChatInput onSubmit={onChatSubmit} />
+      </div>
       <MusicPlayer
         setDeviceId={setDeviceId}
         deviceId={deviceId}

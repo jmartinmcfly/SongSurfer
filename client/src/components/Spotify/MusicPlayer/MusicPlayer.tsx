@@ -1,9 +1,9 @@
 import React, { SetStateAction, useState, useEffect, useRef } from 'react'
 import axios from 'axios'
-import PauseIcon from '../Svg/pauseIcon.jsx'
-import PlayIcon from '../Svg/playIcon.jsx'
-import SkipForwardIcon from '../Svg/skipForwardIcon.jsx'
-import SkipBackIcon from '../Svg/skipBackIcon.jsx'
+import PauseIcon from '../../Utils/Svg/pauseIcon.jsx'
+import PlayIcon from '../../Utils/Svg/playIcon.jsx'
+import SkipForwardIcon from '../../Utils/Svg/skipForwardIcon.jsx'
+import SkipBackIcon from '../../Utils/Svg/skipBackIcon.jsx'
 import './MusicPlayer.scss'
 
 // interfaces

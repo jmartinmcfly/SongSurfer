@@ -1,5 +1,5 @@
 import React from 'react'
-import { MainView } from './components/MainView'
+import { MainView } from './components/RouteContainer'
 
 const style = {
   display: 'flex',

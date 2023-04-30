@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react'
 import axios from 'axios'
-import EmptyHeartIcon from '../Svg/emptyHeartIcon'
-import FullHeartIcon from '../Svg/fullHeartIcon'
-import PlayIcon from '../Svg/playIcon'
-import PauseIcon from '../Svg/pauseIcon'
+import EmptyHeartIcon from '../../Utils/Svg/emptyHeartIcon'
+import FullHeartIcon from '../../Utils/Svg/fullHeartIcon'
+import PlayIcon from '../../Utils/Svg/playIcon'
+import PauseIcon from '../../Utils/Svg/pauseIcon'
 
 // TODO: Trackview needs to know if its currently playing
 interface trackViewProps {
