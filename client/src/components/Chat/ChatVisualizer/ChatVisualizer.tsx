@@ -64,6 +64,8 @@ export const ChatVisualizer = (props: ChatVisualizerProps) => {
     width: '100%',
     alignItems: 'flex-start',
     backgroundColor: '#343641',
+    paddingRight: '5px',
+    paddingLeft: '5px',
     color: '#ececf1',
   }
 
@@ -73,8 +75,8 @@ export const ChatVisualizer = (props: ChatVisualizerProps) => {
     flexDirection: 'row',
     alignItems: 'flex-start',
     backgroundColor: '#444654',
-    paddingRight: '10px',
-    paddingLeft: '10px',
+    paddingRight: '5px',
+    paddingLeft: '5px',
     color: '#cfd3da',
   }
 

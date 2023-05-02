@@ -24,8 +24,8 @@ export const ChatInput = (props: ChatInputProps) => {
   const [sendIconSvgColor, setSendIconSvgColor] = useState('#616171')
 
   // text area vars
-  const [height, setHeight] = useState<number>(30)
-  const textAreaRef = useRef<React.RefObject<HTMLTextAreaElement> | null>(null)
+  const [height, setHeight] = useState<number>(22)
+  const textAreaRef = useRef<HTMLTextAreaElement | null>(null)
 
   useEffect(() => {
     if (value == '') {
@@ -46,14 +46,21 @@ export const ChatInput = (props: ChatInputProps) => {
 
   const handleInput = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const { scrollHeight, value } = e.target
+    let tempHeight = 30
+    if (textAreaRef.current) {
+      textAreaRef.current.style.height = 0 + 'px'
+      tempHeight = textAreaRef.current.scrollHeight
+      textAreaRef.current.style.height = Math.min(tempHeight, MAX_HEIGHT) + 'px'
+    }
     setValue(value)
-    setHeight(Math.min(scrollHeight, MAX_HEIGHT))
-    console.log(scrollHeight)
+    setHeight(Math.min(tempHeight, MAX_HEIGHT))
   }
 
   // TODO
   const handleSubmit = (event: any) => {
     props.onSubmit(value)
+    setValue('')
+    setHeight(20)
   }
 
   // Styles:
@@ -68,19 +75,22 @@ export const ChatInput = (props: ChatInputProps) => {
   const sendIconDivStyle: React.CSSProperties = {
     display: 'flex',
     alignItems: 'center',
+    alignSelf: 'flex-end',
+    height: '30px',
+    width: '30px',
     backgroundColor: sendIconBgColor,
     borderRadius: '20%',
     marginRight: '10px',
+    marginBottom: '6px',
   }
 
   const chatInputStyle: React.CSSProperties = {
     display: 'flex',
     flexDirection: 'row',
     justifyContent: 'space-between',
+    alignItems: 'center',
     width: '100%',
-    padding: '5px',
-    boxSizing: 'border-box',
-    height: height.toString() + 'px',
+    height: (height + 20).toString() + 'px',
     marginBottom: '10px',
     backgroundColor: '#404150',
     color: '#404150',
@@ -93,10 +103,13 @@ export const ChatInput = (props: ChatInputProps) => {
 
   // TODO scroll
   const inputStyle: React.CSSProperties = {
+    width: '93%',
     height: height.toString() + 'px',
+    margin: '5px',
+    marginLeft: '10px',
+    fontSize: '16px',
     overflowY: 'scroll',
     resize: 'none',
-    width: '93%',
     backgroundColor: 'transparent',
     border: 'none',
     outline: 'none',
@@ -114,10 +127,12 @@ export const ChatInput = (props: ChatInputProps) => {
         `}
       </style>
       <textarea
+        ref={textAreaRef}
         className="chatInputTextArea"
         value={value}
         onInput={handleInput}
         placeholder="Type your message here..."
+        rows={1}
         style={inputStyle}
       />
       <div
