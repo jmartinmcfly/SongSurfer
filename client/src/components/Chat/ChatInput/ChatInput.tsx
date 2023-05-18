@@ -45,9 +45,11 @@ export const ChatInput = (props: ChatInputProps) => {
   }
 
   const handleInput = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    const { scrollHeight, value } = e.target
+    const { value } = e.target
     let tempHeight = 30
     if (textAreaRef.current) {
+      // need to do this, just accessing scrollHeight from the
+      // event doesn't work for some reason
       textAreaRef.current.style.height = 0 + 'px'
       tempHeight = textAreaRef.current.scrollHeight
       textAreaRef.current.style.height = Math.min(tempHeight, MAX_HEIGHT) + 'px'
@@ -56,7 +58,6 @@ export const ChatInput = (props: ChatInputProps) => {
     setHeight(Math.min(tempHeight, MAX_HEIGHT))
   }
 
-  // TODO
   const handleSubmit = (event: any) => {
     props.onSubmit(value)
     setValue('')
@@ -90,10 +91,12 @@ export const ChatInput = (props: ChatInputProps) => {
     justifyContent: 'space-between',
     alignItems: 'center',
     width: '100%',
+    // Note this value needs to mirror the margin for textarea and the
+    // send icon
     height: (height + 20).toString() + 'px',
     marginBottom: '10px',
     backgroundColor: '#404150',
-    color: '#404150',
+    color: '#282828',
   }
 
   let overflowY: CSSProperties['overflowY'] = 'hidden'
@@ -101,7 +104,6 @@ export const ChatInput = (props: ChatInputProps) => {
     overflowY = 'scroll'
   }
 
-  // TODO scroll
   const inputStyle: React.CSSProperties = {
     width: '93%',
     height: height.toString() + 'px',
@@ -114,7 +116,8 @@ export const ChatInput = (props: ChatInputProps) => {
     border: 'none',
     outline: 'none',
     boxShadow: 'none',
-    color: '#ececf1',
+    //color: '#ececf1',
+    color: 'white',
   }
 
   return (

@@ -4,6 +4,7 @@ import EmptyHeartIcon from '../../Utils/Svg/emptyHeartIcon'
 import FullHeartIcon from '../../Utils/Svg/fullHeartIcon'
 import PlayIcon from '../../Utils/Svg/playIcon'
 import PauseIcon from '../../Utils/Svg/pauseIcon'
+import { kMaxLength } from 'buffer'
 
 // TODO: Trackview needs to know if its currently playing
 interface trackViewProps {
@@ -198,6 +199,12 @@ export const TrackView = (props: trackViewProps) => {
     alignItems: 'center',
   }
 
+  const lengthContainerStyle: React.CSSProperties = {
+    display: 'flex',
+    width: '40px',
+    justifyContent: 'flex-end',
+  }
+
   // TODO: NEXT SESSION START HERE
 
   // fix styling
@@ -236,14 +243,16 @@ export const TrackView = (props: trackViewProps) => {
               <EmptyHeartIcon style={heartIconStyle} onClick={handleLike} />
             )}
           </div>
-          {Math.floor((props.trackLength / 1000) % 60) < 10
-            ? Math.floor(props.trackLength / 1000 / 60) +
-              ':' +
-              '0' +
-              Math.floor((props.trackLength / 1000) % 60)
-            : Math.floor(props.trackLength / 1000 / 60) +
-              ':' +
-              Math.floor((props.trackLength / 1000) % 60)}
+          <div className={'lengthContainer'} style={lengthContainerStyle}>
+            {Math.floor((props.trackLength / 1000) % 60) < 10
+              ? Math.floor(props.trackLength / 1000 / 60) +
+                ':' +
+                '0' +
+                Math.floor((props.trackLength / 1000) % 60)
+              : Math.floor(props.trackLength / 1000 / 60) +
+                ':' +
+                Math.floor((props.trackLength / 1000) % 60)}
+          </div>
         </div>
       </div>
       <div style={separatorStyle}></div>

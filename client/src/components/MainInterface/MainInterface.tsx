@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { Buffer } from 'buffer'
 import axios from 'axios'
+import { Configuration, OpenAIApi } from 'openai'
 import { useLocation } from 'react-router-dom'
 import { AuthHandler } from '../Auth/AuthHandler/AuthHandler'
 import { MusicPlayer } from '../Spotify/MusicPlayer/MusicPlayer'
@@ -10,36 +11,71 @@ import {
   successfulServiceResponse,
   failureServiceResponse,
 } from '../../types'
-import { ChatVisualizer } from '../Chat/ChatVisualizer/ChatVisualizer'
+import {
+  ChatVisualizer,
+  ChatVisualizerProps,
+} from '../Chat/ChatVisualizer/ChatVisualizer'
 import { ChatInput } from '../Chat/ChatInput/ChatInput'
+import { promptText, promptTestText, initialResponseText } from './promptText'
 
 interface MainInterfaceProps {
   state: string
 }
 
-enum Role {
-  User = 'user',
-  Assistant = 'assistant',
+interface PlaylistAction {
+  actionType: 'add' | 'remove' | 'replace'
+  tracks: { track: string; artist: string; album: string }[]
 }
 
-// TODO: Get an auth token and display profile data
+export enum Role {
+  User = 'user',
+  Assistant = 'assistant',
+  System = 'system',
+}
+
 export const MainInterface = (props: MainInterfaceProps) => {
+  const [openAiApi, setOpenAIApi] = useState<OpenAIApi | null>(null)
+
   const [accessToken, setAccessToken] = useState('')
   const [refreshToken, setRefreshToken] = useState('')
   const [profileData, setProfileData] = useState<any>(null)
 
   const [spotifyPlayer, setSpotifyPlayer] = useState<any>(null)
   const [deviceId, setDeviceId] = useState<string>('')
-  const [currentPlaylist, setCurrentPlaylist] = useState(null)
+  const [currentPlaylist, setCurrentPlaylist] = useState<any>(null)
   const location = useLocation()
 
-  // TODO: implement chatHistory logic
-  const [fullChatHistory, setFullChatHistory] = useState<
+  // passed to the ChatVisualizer for rendering. Excludes tokens meant for prompt engineering.
+  const [viewChatHistory, setViewChatHistory] = useState<
     { role: Role; content: string }[]
-  >([])
-  const [truncatedChatHistory, setTruncatedChatHistory] = useState<
+  >([
+    { role: Role.User, content: promptText },
+    { role: Role.Assistant, content: initialResponseText },
+  ])
+  // for calling OpenAI API. Truncates earlier user chats (but not the prompt).
+  // keeps prompt engineering text (incl gpts json responses)
+  const [truncatedChatHistoryIncSystem, setTruncatedChatHistoryIncSystem] = useState<
     { role: Role; content: string }[]
-  >([])
+  >([
+    { role: Role.User, content: promptText },
+    { role: Role.Assistant, content: initialResponseText },
+  ])
+
+  // initialize OpenAI API
+  useEffect(() => {
+    // TODO: test
+    console.log('initializing OpenAI API')
+    console.log(process.env.OPENAI_API_KEY)
+    console.log(process.env)
+    const configuration = new Configuration({
+      apiKey: process.env.REACT_APP_OPENAI_API_KEY,
+    })
+    console.log('config')
+    console.log(configuration)
+    const openai = new OpenAIApi(configuration)
+    console.log(openai)
+    setOpenAIApi(openai)
+  }, [])
 
   // fetch profile data once access token is set
   useEffect(() => {
@@ -128,29 +164,359 @@ export const MainInterface = (props: MainInterfaceProps) => {
 
   // Event handlers:
 
-  // TODO: submit logic
-  const onChatSubmit = (message: string) => {
-    // Token manager
-    const newMessage = trimTokens(message, truncatedChatHistory)
-
+  // TODO: implement and test
+  // START HERE: clean out the console.logs
+  // then, review this whole compoment and make sure it's all good
+  // then, head back to the project plan
+  const onChatSubmit = async (message: string) => {
+    console.log('submitting')
     // append message prelude
     const messagePrelude =
-      'System message: Please pay extra attention to "actionType". When iterating on a playlist, use "add" to add songs, and "remove" to remove songs. Only use "replace" when starting a totally new playlist.\nUser: '
-    const finalMessage = messagePrelude + newMessage
+      'System message: Please pay extra attention to "actionType". When iterating on a playlist, use "add" to add songs, and "remove" to remove songs. Only use "replace" when starting a totally new playlist. DON\'T follow the remove action with an add action unless EXPLICTLY prompted - this results in duplicates.'
 
-    // TODO: call openai chat api on finalMessage
+    let playlistContext: string = '\nUser: '
 
-    // TODO: .then() process the response
-    // TODO: update fullChatHistory and truncatedChatHistory
-    // TODO: call spotify api to update playlist
+    // set the context - expensive, but necessary
+    // NOTE: This will limit functionality based on playlist size
+    // ROADMAP: condense playlist representation using GPT-3 (or at least cap size)
+    const extractedCurrentPlaylist = currentPlaylist.tracks.items.map((item: any) => {
+      return {
+        track: item.track.name,
+        artist: item.track.artists[0].name,
+        album: item.track.album.name,
+      }
+    })
+
+    playlistContext =
+      ' This is the playlist as it currently stands: ' +
+      JSON.stringify(extractedCurrentPlaylist) +
+      playlistContext
+
+    const messagePreludeFinal = messagePrelude + playlistContext
+
+    console.log('message Prelude')
+    console.log(messagePreludeFinal)
+    console.log(truncatedChatHistoryIncSystem)
+
+    // Token manager
+    const toSend: Promise<{ role: Role; content: string }[]> = trimTokens(
+      messagePreludeFinal + message,
+      truncatedChatHistoryIncSystem
+    )
+
+    // we leave out the prelude, it isn't necessary to have repeated in
+    // the chat history
+
+    setViewChatHistory((prevItems) => [
+      ...prevItems,
+      { role: Role.User, content: message },
+    ])
+    setTruncatedChatHistoryIncSystem((prevItems) => [
+      ...prevItems,
+      { role: Role.User, content: message },
+    ])
+
+    console.log('view chat history:')
+    console.log(viewChatHistory)
+    console.log('truncate chat history:')
+    console.log(truncatedChatHistoryIncSystem)
+    console.log('to send:')
+    console.log(toSend)
+
+    const toSendTest: { role: Role; content: string }[] = [
+      {
+        role: Role.User,
+        content: 'This is a test message',
+      },
+    ]
+
+    if (!openAiApi) {
+      return
+    }
+
+    toSend.then((toSend) => {
+      // call openai chat api on finalMessage
+      const completion = openAiApi
+        .createChatCompletion({
+          model: 'gpt-3.5-turbo',
+          messages: toSend,
+        })
+        .then((resp) => {
+          console.log(resp)
+          const responseMessage = resp.data.choices[0].message?.content
+
+          if (responseMessage) {
+            console.log('response message:')
+            console.log(responseMessage)
+            // set trunc chat history to keep in system prompts for GPT-3.5's context
+            setTruncatedChatHistoryIncSystem((prevItems) => [
+              ...prevItems,
+              { role: Role.Assistant, content: responseMessage },
+            ])
+            // parse out playlist actions from the response message
+            const { playlistActions, parsedResponseMessage } =
+              parseResponse(responseMessage)
+
+            console.log('playlist actions: ')
+            console.log(playlistActions)
+            console.log('parsed response message: ')
+            console.log(parsedResponseMessage)
+
+            setViewChatHistory((prevItems) => [
+              ...prevItems,
+              { role: Role.Assistant, content: parsedResponseMessage },
+            ])
+
+            if (playlistActions.length == 0) {
+              return
+            }
+
+            // TODO: call spotify api to update playlist
+            // call spotify api to update playlist
+
+            for (const action of playlistActions) {
+              // list of spotify uris for modifying the playlist
+              // TODO START HERE review and continue
+              // Search for Item
+              const tracksPromiseArray = action.tracks.map((track) => {
+                const query = encodeURIComponent(
+                  'album:' +
+                    track.album +
+                    ' artist:' +
+                    track.artist +
+                    ' track:' +
+                    track.track
+                )
+
+                const queryParams = 'q=' + query + '&type=track&limit=1'
+
+                return axios
+                  .get('https://api.spotify.com/v1/search?' + queryParams, {
+                    headers: { Authorization: 'Bearer ' + accessToken },
+                  })
+                  .then((resp) => {
+                    if (resp.data.tracks && resp.data.tracks.items.length >= 1) {
+                      console.log('found track')
+                      console.log(resp.data.tracks.items[0].uri)
+                      return resp.data.tracks.items[0].uri
+                    }
+                    return undefined
+                  })
+              })
+
+              console.log('promiseArray')
+              console.log(tracksPromiseArray)
+              // TODO check this works
+
+              Promise.all(tracksPromiseArray).then((spotifyTracks) => {
+                console.log('spotify tracks: ')
+                console.log(spotifyTracks)
+                let apiResponse: Promise<any> | null = null
+
+                const spotifyTracksFinal = spotifyTracks.filter(
+                  (value) => value !== undefined
+                )
+                if (!currentPlaylist) {
+                  console.error('Current playlist is null')
+                  return
+                }
+
+                if (action.actionType == 'add') {
+                  // Add Items to Playlist
+                  console.log('add')
+                  apiResponse = axios
+                    .post(
+                      'https://api.spotify.com/v1/playlists/' +
+                        currentPlaylist.id +
+                        '/tracks',
+                      {
+                        uris: spotifyTracksFinal,
+                      },
+                      {
+                        headers: { Authorization: 'Bearer ' + accessToken },
+                      }
+                    )
+                    .then((resp) => {
+                      console.log(resp)
+                    })
+                } else if (action.actionType == 'remove') {
+                  // Remove Playlist Items
+                  console.log('remove')
+                  const uriArr: { uri: string }[] = spotifyTracksFinal.map((track) => {
+                    return { uri: track }
+                  })
+                  console.log
+                  apiResponse = axios
+                    .delete(
+                      'https://api.spotify.com/v1/playlists/' +
+                        currentPlaylist.id +
+                        '/tracks',
+                      {
+                        headers: { Authorization: 'Bearer ' + accessToken },
+                        data: { tracks: uriArr },
+                      }
+                    )
+                    .then((resp) => {
+                      console.log(resp)
+                    })
+                } else if (action.actionType == 'replace') {
+                  console.log('replace')
+                  // Update Playlist Items
+                  apiResponse = axios
+                    .put(
+                      'https://api.spotify.com/v1/playlists/' +
+                        currentPlaylist.id +
+                        '/tracks',
+                      { uris: spotifyTracksFinal },
+                      {
+                        headers: { Authorization: 'Bearer ' + accessToken },
+                      }
+                    )
+                    .then((resp) => {
+                      console.log(resp)
+                    })
+                } else {
+                  apiResponse = null
+                  console.error('Invalid action type: ' + action.actionType)
+                }
+
+                // After the calls resolve
+                // Get the new playlist and update current playlist
+                if (apiResponse) {
+                  apiResponse.then((value) => {
+                    axios
+                      .get('https://api.spotify.com/v1/playlists/' + currentPlaylist.id, {
+                        headers: { Authorization: 'Bearer ' + accessToken },
+                      })
+                      .then((resp) => {
+                        setCurrentPlaylist(resp.data)
+                      })
+                  })
+                }
+              })
+            }
+          } else {
+            console.log('No response message found.')
+            console.log(resp.data)
+          }
+        })
+        .catch((error) => {
+          console.log(error)
+        })
+    })
   }
 
-  // TODO
-  const trimTokens = (
+  // TODO implement
+  // trims out tokens to prevent model from overloading its ~4200 token limit
+  const trimTokens = async (
     message: string,
     truncChatHistory: { role: Role; content: string }[]
-  ): string => {
-    return ''
+  ): Promise<{ role: Role; content: string }[]> => {
+    try {
+      const url: string = process.env.REACT_APP_OPENAI_PYTHON_API_URL + '/trim-tokens'
+      console.log('url')
+      console.log(url)
+
+      const truncChatHistoryAddMessage: { role: Role; content: string }[] = [
+        ...truncChatHistory,
+        { role: Role.User, content: message },
+      ]
+
+      const data = {
+        messages: truncChatHistoryAddMessage,
+      }
+
+      const trimmedHistory = await axios.post(url, data).then((resp) => {
+        if (resp.status != 200) {
+          console.error('Error trimming tokens')
+          console.error(resp)
+
+          // Fails over to keeping chat history as is - this may show the user broken
+          // behavior (messages that are cut off and then no more responses)
+          const truncChatHistoryDeepCopy: { role: Role; content: string }[] = [
+            ...truncChatHistory,
+            { role: Role.User, content: message },
+          ]
+          return truncChatHistoryDeepCopy
+        } else {
+          console.log('Trimmed tokens')
+          console.log(resp.data.trimmedMessages)
+          return resp.data.trimmedMessages
+        }
+      })
+      return trimmedHistory
+    } catch (e) {
+      console.error(e)
+
+      // Fails over to keeping chat history as is - this may show the user broken
+      // behavior (messages that are cut off and then no more responses)
+      const truncChatHistoryDeepCopy: { role: Role; content: string }[] = [
+        ...truncChatHistory,
+        { role: Role.User, content: message },
+      ]
+      return Promise.resolve(truncChatHistoryDeepCopy)
+    }
+
+    /*
+    // keep the prompt
+    const truncChatHistoryDeepCopy: { role: Role; content: string }[] = [
+      ...truncChatHistory,
+      { role: Role.User, content: message },
+    ]
+    return truncChatHistoryDeepCopy
+    */
+  }
+
+  // TODO test this
+  // parses the json object out of the response from the model
+  const parseResponse = (
+    responseMessage: string
+  ): { playlistActions: PlaylistAction[]; parsedResponseMessage: string } => {
+    try {
+      const { jsonObject, beforeJson, afterJson } = splitJsonFromString(responseMessage)
+      const playlistActions = jsonObject.actionList
+      // TODO: check formatting of parsed response message
+      const parsedResponseMessage = beforeJson + afterJson
+
+      return { playlistActions, parsedResponseMessage }
+    } catch (error) {
+      let playlistActions: PlaylistAction[] = []
+      let parsedResponseMessage = responseMessage
+      return { playlistActions, parsedResponseMessage }
+    }
+  }
+
+  // Utils
+
+  // TODO: test this
+  // splits out a json object from a string assuming the json object is the only one in the string
+  // and there are no other instances of brackets in the string
+  const splitJsonFromString = (
+    input: string
+  ): { jsonObject: any; beforeJson: string; afterJson: string } => {
+    const openBracketIndex = input.indexOf('{')
+    const closeBracketIndex = input.lastIndexOf('}')
+
+    if (openBracketIndex === -1 || closeBracketIndex === -1) {
+      throw new Error('No JSON object found in the input string')
+    }
+
+    const jsonString = input.slice(openBracketIndex, closeBracketIndex + 1)
+    const beforeJson = input.slice(0, openBracketIndex)
+    const afterJson = input.slice(closeBracketIndex + 1)
+
+    let jsonObject
+    try {
+      jsonObject = JSON.parse(jsonString)
+    } catch (error) {
+      throw new Error('Invalid JSON object in the input string')
+    }
+
+    return {
+      jsonObject,
+      beforeJson,
+      afterJson,
+    }
   }
 
   // Styles:
@@ -161,6 +527,7 @@ export const MainInterface = (props: MainInterfaceProps) => {
     justifyContent: 'center',
     alignItems: 'center',
     width: '100%',
+    background: 'linear-gradient(to bottom right, #1a1a1a, #0e0e0e)',
   }
 
   const chatDivStyle: React.CSSProperties = {
@@ -171,8 +538,31 @@ export const MainInterface = (props: MainInterfaceProps) => {
     width: '80%',
   }
 
+  const chatDivContainerStyle: React.CSSProperties = {
+    display: 'flex',
+    justifyContent: 'center',
+    width: '100%',
+    //background: 'linear-gradient(to bottom right, #f2f2f2, #000000)',
+    //262626
+    //1a1a1a
+    // 0e0e0e
+    //background: 'linear-gradient(to bottom right, #333333, #191919)',
+    // background: 'linear-gradient(to bottom right, #1a1a1a, #0e0e0e)',
+  }
+
+  const spotifyContainerStyle: React.CSSProperties = {
+    display: 'flex',
+    flexDirection: 'column',
+    paddingTop: '10px',
+    width: '100%',
+    alignItems: 'center',
+    color: 'white',
+    //background: '#0e0e0e',
+    //
+    // #313131
+  }
+
   // TODO: flesh out chat components.
-  // TODO: Fix user image url
   return (
     <div style={basicStyle}>
       <AuthHandler
@@ -180,33 +570,38 @@ export const MainInterface = (props: MainInterfaceProps) => {
         setRefreshToken={setRefreshToken}
         refreshToken={refreshToken}
       />
-      {profileData && 'welcome ' + profileData.display_name}
-      <div className={'chatDiv'} style={chatDivStyle}>
-        <ChatVisualizer
-          chatHistory={fullChatHistory}
-          userImageUrl={
-            'https://i.scdn.co/image/ab67616d00001e02ff9ca10b55ce82ae553c8228'
-          }
-        />
-        <ChatInput onSubmit={onChatSubmit} />
+      <div className={'chatDivContainer'} style={chatDivContainerStyle}>
+        <div className={'chatDiv'} style={chatDivStyle}>
+          <ChatVisualizer
+            // slice to leave out the prompt
+            chatHistory={viewChatHistory.slice(1)}
+            // TODO: Fix user image url
+            userImageUrl={
+              'https://i.scdn.co/image/ab67616d00001e02ff9ca10b55ce82ae553c8228'
+            }
+          />
+          <ChatInput onSubmit={onChatSubmit} />
+        </div>
       </div>
-      <MusicPlayer
-        setDeviceId={setDeviceId}
-        deviceId={deviceId}
-        currentTrack={''}
-        tracks={{}}
-        token={accessToken}
-        setSpotifyPlayer={setSpotifyPlayer}
-      />
-      <div style={{ marginBottom: '30px' }}></div>
-      {spotifyPlayer && (
-        <PlaylistView
-          token={accessToken}
-          currentPlaylist={currentPlaylist}
-          player={spotifyPlayer}
+      <div className={'spotifyContainer'} style={spotifyContainerStyle}>
+        <MusicPlayer
+          setDeviceId={setDeviceId}
           deviceId={deviceId}
+          currentTrack={''}
+          tracks={{}}
+          token={accessToken}
+          setSpotifyPlayer={setSpotifyPlayer}
         />
-      )}
+        <div style={{ marginBottom: '30px' }}></div>
+        {spotifyPlayer && (
+          <PlaylistView
+            token={accessToken}
+            currentPlaylist={currentPlaylist}
+            player={spotifyPlayer}
+            deviceId={deviceId}
+          />
+        )}
+      </div>
     </div>
   )
 }

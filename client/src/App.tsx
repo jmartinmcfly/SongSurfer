@@ -1,5 +1,5 @@
 import React from 'react'
-import { MainView } from './components/RouteContainer'
+import { RouteContainer } from './components/RouteContainer'
 
 const style = {
   display: 'flex',
@@ -8,7 +8,7 @@ const style = {
 }
 
 const App = () => {
-  return <MainView style={style} />
+  return <RouteContainer style={style} />
 }
 
 export default App

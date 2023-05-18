@@ -2,6 +2,7 @@ import express from 'express'
 import dotenv from 'dotenv'
 import { Request, Response } from 'express'
 import { NodeRouter } from './nodes/NodeRouter'
+import { OpenAiRouter } from './openai/OpenAiRouter'
 import cors from 'cors' // cors is a package that polices cross-origin requests
 import { MongoClient } from 'mongodb'
 
@@ -27,6 +28,8 @@ const mongoClient = new MongoClient(uri, {
 mongoClient.connect()
 const myNodeRouter = new NodeRouter(mongoClient)
 app.use('/node', myNodeRouter.getExpressRouter())
+
+app.use('/openai', myNodeRouter.getExpressRouter())
 
 app.get('*', (req: Request, res: Response) => {
   res.send('MyHypermedia Backend Service')

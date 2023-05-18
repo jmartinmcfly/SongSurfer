@@ -3,10 +3,13 @@
   "version": "1.0.0",
   "description": "Natural language interface for Spotify",
   "author": "Jake Martin",
-	"license": "",
+  "license": "",
   "scripts": {
     "start": "node error.js",
     "install": "node error.js",
-		"lint": "node error.js"
+    "lint": "node error.js"
+  },
+  "dependencies": {
+    "@types/node": "^18.15.11"
   }
 }

@@ -97,16 +97,13 @@ export const PlaylistView = (props: playlistViewProps) => {
         (item: any, index: number) => {
           let isCurrentTrack: boolean = false
           if (currentTrack) {
-            console.log('currentTrack.name: ' + currentTrack.name)
-            console.log('item.track.name: ' + item.track.name)
-            console.log('tracks equal: ' + (currentTrack.name == item.track.name))
             isCurrentTrack = currentTrack.name == item.track.name
           }
 
           return (
             <TrackView
               token={props.token}
-              key={item.track.id}
+              key={item.track.id + index.toString()}
               trackNumber={index + 1}
               albumPhotoUrl={item.track.album.images[0].url}
               trackName={item.track.name}

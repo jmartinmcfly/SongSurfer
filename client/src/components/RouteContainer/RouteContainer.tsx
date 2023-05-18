@@ -8,11 +8,11 @@ import {} from '../../types'
 import './RouteContainer.scss'
 import { MainInterface } from '../MainInterface/MainInterface'
 
-interface MainViewProps {
+interface RouteContainerProps {
   style: any
 }
 
-export const MainView = (props: MainViewProps) => {
+export const RouteContainer = (props: RouteContainerProps) => {
   // [1] useState hooks
   const [isLoading, setIsLoading] = useState(true)
   const [state, setState] = useState('')
@@ -60,7 +60,6 @@ export const MainView = (props: MainViewProps) => {
    */
   return (
     <div className="App" style={basicStyle}>
-      {'Hello World'}
       {state != '' && (
         <Routes>
           <Route
