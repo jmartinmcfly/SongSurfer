@@ -5,6 +5,8 @@ import FullHeartIcon from '../../Utils/Svg/fullHeartIcon'
 import PlayIcon from '../../Utils/Svg/playIcon'
 import PauseIcon from '../../Utils/Svg/pauseIcon'
 import { kMaxLength } from 'buffer'
+import '../MusicPlayer/MusicPlayer.scss'
+import './TrackView.scss'
 
 // TODO: Trackview needs to know if its currently playing
 interface trackViewProps {
@@ -17,6 +19,8 @@ interface trackViewProps {
   isLiked: boolean
   trackLength: number
   trackUri: string
+  albumUri: string
+  artistUri: string
   trackId: string
   player: any
   deviceId: string
@@ -100,6 +104,21 @@ export const TrackView = (props: trackViewProps) => {
     setIsLiked(false)
   }
 
+  const handleTrackRedirect = (e: React.MouseEvent<HTMLDivElement>) => {
+    const uri = props.trackUri.replace('spotify:track:', '')
+    window.open('https://open.spotify.com/track/' + uri)
+  }
+
+  const handleAlbumRedirect = (e: React.MouseEvent<HTMLDivElement>) => {
+    const uri = props.albumUri.replace('spotify:album:', '')
+    window.open('https://open.spotify.com/album/' + uri)
+  }
+
+  const handleArtistRedirect = (e: React.MouseEvent<HTMLDivElement>) => {
+    const uri = props.artistUri.replace('spotify:artist:', '')
+    window.open('https://open.spotify.com/artist/' + uri)
+  }
+
   // styles
   const flexRowStyle: React.CSSProperties = {
     display: 'flex',
@@ -135,6 +154,7 @@ export const TrackView = (props: trackViewProps) => {
   const playPauseIconStyle: React.CSSProperties = {
     height: '12px',
     width: '12px',
+    fill: '#0fa37f',
   }
 
   const trackInfoContainerStyle: React.CSSProperties = {
@@ -142,6 +162,7 @@ export const TrackView = (props: trackViewProps) => {
     flexDirection: 'row',
     alignItems: 'flex-end',
     width: '200px',
+    flex: 2,
     overflow: 'hidden',
     whiteSpace: 'nowrap',
     textOverflow: 'ellipsis',
@@ -159,6 +180,7 @@ export const TrackView = (props: trackViewProps) => {
   }
 
   const albumNameStyle: React.CSSProperties = {
+    flex: 2,
     width: '150px',
     overflow: 'hidden',
     whiteSpace: 'nowrap',
@@ -166,13 +188,15 @@ export const TrackView = (props: trackViewProps) => {
   }
 
   const heartIconContainerStyle: React.CSSProperties = {
-    marginRight: '20px',
+    marginRight: '10px',
+    // fill: '#0fa37f',
+    fill: 'white',
   }
 
   const separatorStyle: React.CSSProperties = {
     width: '100%',
     height: '1px',
-    backgroundColor: 'black',
+    backgroundColor: '#444654',
     margin: '16px 0px 16px 0px',
   }
 
@@ -197,6 +221,8 @@ export const TrackView = (props: trackViewProps) => {
     display: 'flex',
     flexDirection: 'row',
     alignItems: 'center',
+    flex: 2,
+    marginRight: '15px',
   }
 
   const lengthContainerStyle: React.CSSProperties = {
@@ -223,16 +249,28 @@ export const TrackView = (props: trackViewProps) => {
           <div className={'trackInfoContainer'} style={trackInfoContainerStyle}>
             <img src={props.albumPhotoUrl} style={albumPhotoStyle} />
             <div className={'trackTextContainer'} style={trackTextContainerStyle}>
-              <div className={'trackName'} style={trackNameStyle}>
+              <div
+                className={'clickableText trackName'}
+                style={trackNameStyle}
+                onClick={handleTrackRedirect}
+              >
                 {props.trackName}
               </div>
-              <div className={'artistName'} style={artistNameStyle}>
+              <div
+                className={'clickableText artistName'}
+                style={artistNameStyle}
+                onClick={handleArtistRedirect}
+              >
                 {props.artistName}
               </div>
             </div>
           </div>
         </div>
-        <div className={'albumName'} style={albumNameStyle}>
+        <div
+          className={'clickableText albumName'}
+          style={albumNameStyle}
+          onClick={handleAlbumRedirect}
+        >
           {props.albumName}
         </div>
         <div className={'trackLength'} style={flexRowStyle}>

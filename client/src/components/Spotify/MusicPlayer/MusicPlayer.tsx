@@ -207,18 +207,24 @@ export const MusicPlayer = (props: MusicPlayerProps) => {
 
   const playerDivStyle: React.CSSProperties = {
     display: 'flex',
+    width: '80%',
     flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'flex-end',
+    position: 'relative',
   }
 
   const trackStyle: React.CSSProperties = {
     display: 'flex',
     flexDirection: 'row',
+    position: 'absolute',
+    left: '0',
   }
 
   const albumImageStyle: React.CSSProperties = {
     display: 'flex',
-    height: '50px',
-    width: '50px',
+    height: '60px',
+    width: '60px',
     paddingRight: '10px',
   }
 
@@ -228,9 +234,17 @@ export const MusicPlayer = (props: MusicPlayerProps) => {
     justifyContent: 'center',
   }
 
+  const trackTextContainerStyle: React.CSSProperties = {
+    display: 'flex',
+    flexDirection: 'row',
+    alignItems: 'center',
+  }
+
   const trackNameStyle: React.CSSProperties = {
     display: 'flex',
     fontSize: '14px',
+    fontWeight: 'bold',
+    marginBottom: '3px',
   }
 
   const albumNameStyle: React.CSSProperties = {
@@ -243,7 +257,7 @@ export const MusicPlayer = (props: MusicPlayerProps) => {
     justifyContent: 'center',
     borderRadius: '10px',
     borderColor: 'black',
-    width: '200px',
+    width: '150px',
     height: '50px',
   }
 
@@ -259,10 +273,18 @@ export const MusicPlayer = (props: MusicPlayerProps) => {
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
+    width: '110%',
   }
 
-  const iconPaddingStyle = {
-    padding: '10px',
+  const songProgressStyle: React.CSSProperties = {
+    display: 'flex',
+    justifyContent: 'center',
+    fontSize: '12px',
+    width: '40px',
+  }
+
+  const songDurationStyle: React.CSSProperties = {
+    ...songProgressStyle,
   }
 
   // jsx
@@ -280,47 +302,41 @@ export const MusicPlayer = (props: MusicPlayerProps) => {
           )}
         </div>
 
-        <div className={'trackText'} style={trackTextStyle}>
-          <div style={trackNameStyle}>{currentTrack !== null && currentTrack.name}</div>
+        <div className="trackTextContainer" style={trackTextContainerStyle}>
+          <div className={'trackText'} style={trackTextStyle}>
+            <div style={trackNameStyle}>{currentTrack !== null && currentTrack.name}</div>
 
-          <div style={albumNameStyle}>
-            {currentTrack !== null && currentTrack.artists[0].name}
+            <div style={albumNameStyle}>
+              {currentTrack !== null && currentTrack.artists[0].name}
+            </div>
           </div>
         </div>
       </div>
       <div className={'control'} style={controlStyle}>
         <div className={'buttons'} style={buttonStyle}>
-          <SkipBackIcon
-            className="skipBackIcon"
-            style={iconPaddingStyle}
-            onClick={handleSkipBack}
-          />
+          <SkipBackIcon className="controlIcon skipBackIcon" onClick={handleSkipBack} />
           {!isPlaying ? (
-            <PlayIcon
-              className="playIcon"
-              style={iconPaddingStyle}
-              onClick={handlePlayPause}
-            />
+            <PlayIcon className="controlIcon playIcon" onClick={handlePlayPause} />
           ) : (
-            <PauseIcon
-              className="playIcon"
-              style={iconPaddingStyle}
-              onClick={handlePlayPause}
-            />
+            <PauseIcon className="controlIcon pauseIcon" onClick={handlePlayPause} />
           )}
+
           <SkipForwardIcon
-            className="skipForwardIcon"
-            style={iconPaddingStyle}
+            className="controlIcon skipForwardIcon"
             onClick={handleSkipForward}
           />
         </div>
-        <div style={progressStyle}>
-          {Math.floor((progress / 1000) % 60) < 10
-            ? Math.floor(progress / 1000 / 60) +
-              ':' +
-              '0' +
-              Math.floor((progress / 1000) % 60)
-            : Math.floor(progress / 1000 / 60) + ':' + Math.floor((progress / 1000) % 60)}
+        <div className="progressStyle" style={progressStyle}>
+          <div className="songProgress" style={songProgressStyle}>
+            {Math.floor((progress / 1000) % 60) < 10
+              ? Math.floor(progress / 1000 / 60) +
+                ':' +
+                '0' +
+                Math.floor((progress / 1000) % 60)
+              : Math.floor(progress / 1000 / 60) +
+                ':' +
+                Math.floor((progress / 1000) % 60)}
+          </div>
           {isDragging ? (
             <input
               type="range"
@@ -344,14 +360,16 @@ export const MusicPlayer = (props: MusicPlayerProps) => {
               className="progress-bar"
             />
           )}
-          {Math.floor(((duration - progress) / 1000) % 60) < 10
-            ? Math.floor((duration - progress) / 1000 / 60) +
-              ':' +
-              '0' +
-              Math.floor(((duration - progress) / 1000) % 60)
-            : Math.floor((duration - progress) / 1000 / 60) +
-              ':' +
-              Math.floor(((duration - progress) / 1000) % 60)}
+          <div className="songDuration" style={songDurationStyle}>
+            {Math.floor(((duration - progress) / 1000) % 60) < 10
+              ? Math.floor((duration - progress) / 1000 / 60) +
+                ':' +
+                '0' +
+                Math.floor(((duration - progress) / 1000) % 60)
+              : Math.floor((duration - progress) / 1000 / 60) +
+                ':' +
+                Math.floor(((duration - progress) / 1000) % 60)}
+          </div>
         </div>
       </div>
     </div>

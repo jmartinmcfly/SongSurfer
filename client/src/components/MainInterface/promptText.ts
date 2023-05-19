@@ -4,4 +4,4 @@ export const promptText: string =
 export const promptTestText: string = 'You are DJ-GPT, a robot DJ.'
 
 export const initialResponseText: string =
-  "Welcome Song Surfer - I am DJ-GPT, your personal robot DJ. I'm here to create the perfect playlist for you based on your preferences and requests. Just let me know what you're in the mood for, and I'll curate a playlist that will get your toes tapping and your head nodding.\n Let's make some musical magic together!"
+  "Welcome Song Surfer - I am DJ-GPT, your personal robot DJ. I'm here to create the perfect playlist for you based on your preferences and requests. Just let me know what you're in the mood for, and I'll curate a playlist that will get your toes tapping and your head nodding.\n\nLet's make some musical magic together! \n\nPS: OpenAI's api is quite slow, so please be patient with me. Responses may take up to a minute or so, especially when I'm gathering many songs."

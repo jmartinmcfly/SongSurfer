@@ -1,10 +1,13 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { Role } from '../../MainInterface/MainInterface'
 import ChatGptIcon from '../../Utils/Svg/chatGptIcon'
+import { preProcessFile } from 'typescript'
+import './ChatVisualizer.scss'
 
 export interface ChatVisualizerProps {
   chatHistory: { role: Role; content: string }[]
   userImageUrl: string
+  isLoading: boolean
 }
 
 export const ChatVisualizer = (props: ChatVisualizerProps) => {
@@ -38,15 +41,19 @@ export const ChatVisualizer = (props: ChatVisualizerProps) => {
         localChatImageContainerStyle = firstImageContainerStyle
       }
 
+      // set styles for last chat item so margins are correct
       if (index == props.chatHistory.length - 1) {
-        console.log('last')
-        localChatTextStyle = lastChatTextStyle
-        localChatImageContainerStyle = lastImageContainerStyle
-        if (chat.role == Role.User) {
-          // set opposite color
-          setAlternatingBackgroundColor('#444654')
-        } else {
-          setAlternatingBackgroundColor('#343641')
+        // if its loading, last message is the loading message
+        if (!props.isLoading) {
+          console.log('last')
+          localChatTextStyle = lastChatTextStyle
+          localChatImageContainerStyle = lastImageContainerStyle
+          if (chat.role == Role.User) {
+            // set opposite color
+            setAlternatingBackgroundColor('#444654')
+          } else {
+            setAlternatingBackgroundColor('#343641')
+          }
         }
       }
 
@@ -59,7 +66,7 @@ export const ChatVisualizer = (props: ChatVisualizerProps) => {
             <div style={localChatImageContainerStyle}>
               <img src={props.userImageUrl} alt="User" style={chatImageStyle} />
             </div>
-            <div style={localChatTextStyle}>{chat.content}</div>
+            <p style={localChatTextStyle}>{chat.content}</p>
           </div>
         )
       } else {
@@ -69,11 +76,26 @@ export const ChatVisualizer = (props: ChatVisualizerProps) => {
               {/*<img src={DJGPT_IMAGE_URL} alt="DJ-GPT" style={chatImageStyle} />*/}
               <ChatGptIcon style={chatImageStyle} />
             </div>
-            <div style={localChatTextStyle}>{chat.content}</div>
+            <p style={localChatTextStyle}>{chat.content}</p>
           </div>
         )
       }
     })
+
+    if (props.isLoading) {
+      // add loading indicator
+      chatList.push(
+        <div className="assistantChat" style={assistantStyle} key={'loading'}>
+          <div style={chatImageContainerStyle}>
+            {/*<img src={DJGPT_IMAGE_URL} alt="DJ-GPT" style={chatImageStyle} />*/}
+            <ChatGptIcon style={chatImageStyle} />
+          </div>
+          <div className="loading"></div>
+        </div>
+      )
+
+      setAlternatingBackgroundColor('#343641')
+    }
 
     setChatList(chatList)
   }, [props.chatHistory])
@@ -89,6 +111,7 @@ export const ChatVisualizer = (props: ChatVisualizerProps) => {
     paddingRight: '5px',
     paddingLeft: '5px',
     color: '#ececf1',
+    whiteSpace: 'pre-wrap',
   }
 
   const lastUserStyle: React.CSSProperties = {
@@ -106,6 +129,7 @@ export const ChatVisualizer = (props: ChatVisualizerProps) => {
     paddingRight: '5px',
     paddingLeft: '5px',
     color: '#cfd3da',
+    whiteSpace: 'pre-wrap',
   }
 
   const lastAssistantStyle: React.CSSProperties = {
@@ -129,7 +153,7 @@ export const ChatVisualizer = (props: ChatVisualizerProps) => {
 
   const firstChatTextStyle: React.CSSProperties = {
     marginLeft: '5px',
-    marginTop: '20px',
+    marginTop: '15px',
     marginBottom: '10px',
     marginRight: '15px',
   }

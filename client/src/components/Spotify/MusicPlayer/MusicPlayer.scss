@@ -4,33 +4,32 @@ input[type='range'] {
   cursor: pointer; /* Change the cursor to a pointer on hover */
   appearance: none; /* Remove the default appearance */
   outline: none; /* Remove the focus outline */
+  border-radius: 12px;
 }
 
 /* Styles for the track */
 input[type='range']::-webkit-slider-runnable-track {
   height: 4px; /* Adjust the track height */
   background: #ccc; /* Change the track color */
-  border-radius: 3px; /* Round the track edges */
 }
 input[type='range']::-moz-range-track {
   height: 4px;
   background: #ccc;
-  border-radius: 3px;
 }
 
 /* Styles for the thumb */
 input[type='range']::-webkit-slider-thumb {
-  width: 8px; /* Adjust the thumb width */
-  height: 8px; /* Adjust the thumb height */
-  background: black; /* Change the thumb color */
+  width: 10px; /* Adjust the thumb width */
+  height: 10px; /* Adjust the thumb height */
+  background: white; /* Change the thumb color */
   border-radius: 50%; /* Make the thumb a circle */
   appearance: none; /* Remove the default appearance */
   margin-top: -2px; /* Vertically center the thumb */
 }
 input[type='range']::-moz-range-thumb {
-  width: 8px;
-  height: 8px;
-  background: black;
+  width: 10px;
+  height: 10px;
+  background: white;
   border-radius: 50%;
   appearance: none;
 }
@@ -44,4 +43,52 @@ input[type='range']:focus::-webkit-slider-runnable-track {
 }
 input[type='range']:focus::-moz-range-track {
   background: #ddd;
+}
+
+.controlIcon {
+  padding: 10px;
+  fill: #cccccc;
+}
+
+.skipForwardIcon {
+  width: 16px;
+  margin-bottom: 3px;
+}
+
+.skipBackIcon {
+  width: 16px;
+  margin-bottom: 3px;
+}
+
+.playIcon {
+  width: 25px;
+  height: 25px;
+  margin: 1px;
+  fill: #0fa37f;
+}
+
+.pauseIcon {
+  width: 27px;
+  height: 27px;
+  border-radius: 50%;
+  fill: #0fa37f;
+}
+
+.controlIcon:hover {
+  padding: 10px;
+  fill: white;
+}
+
+.playIcon:hover {
+  width: 25px;
+  height: 25px;
+  margin: 1px;
+  fill: #45edc4;
+}
+
+.pauseIcon:hover {
+  width: 27px;
+  height: 27px;
+  border-radius: 50%;
+  fill: #45edc4;
 }

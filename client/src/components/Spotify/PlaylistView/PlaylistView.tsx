@@ -112,6 +112,8 @@ export const PlaylistView = (props: playlistViewProps) => {
               isLiked={likedDict[item.track.id]}
               trackLength={item.track.duration_ms}
               trackUri={item.track.uri}
+              albumUri={item.track.album.uri}
+              artistUri={item.track.artists[0].uri}
               trackId={item.track.id}
               player={props.player}
               deviceId={props.deviceId}
@@ -169,7 +171,7 @@ export const PlaylistView = (props: playlistViewProps) => {
   const separatorStyle: React.CSSProperties = {
     width: '100%',
     height: '1px',
-    backgroundColor: 'black',
+    backgroundColor: '#444654',
     margin: '16px 0px 16px 0px',
   }
 
@@ -194,31 +196,38 @@ export const PlaylistView = (props: playlistViewProps) => {
   const trackNumberHeaderStyle: React.CSSProperties = {
     width: '16px',
     marginRight: '5px',
+    color: '#c4c4c4',
   }
 
   const trackTitleHeaderStyle: React.CSSProperties = {
     width: '200px',
+    color: '#c4c4c4',
   }
 
   const trackAlbumHeaderStyle: React.CSSProperties = {
     width: '150px',
+    color: '#c4c4c4',
+    flex: 2,
   }
 
   const trackLengthHeaderStyle: React.CSSProperties = {
     display: 'flex',
     justifyContent: 'flex-end',
-    width: '78px',
+    width: '68px',
     paddingRight: '2px',
+    fill: '#c4c4c4',
   }
 
   const numberAndTitleHeaderStyle: React.CSSProperties = {
     display: 'flex',
     flexDirection: 'row',
+    flex: 2,
+    marginRight: '15px',
   }
 
   return (
     <div className={'playlistContainer'} style={playlistContainerStyle}>
-      <div className={'playlistHeader'} style={flexRowStyle}>
+      {/*<div className={'playlistHeader'} style={flexRowStyle}>
         <div className={'playlistImage'} style={playlistImageStyle}>
           <RewindIcon style={rewindStyle} />
           <img src={playlistImageUrl} alt={'Playlist Image'} />
@@ -227,7 +236,7 @@ export const PlaylistView = (props: playlistViewProps) => {
           <RewindIcon style={rewindStyle} />
           <div>{playlistName}</div>
         </div>
-      </div>
+      </div> */}
       <div className={'separator'} style={separatorStyle} />
       <div className={'playlistTracksContainer'} style={playlistTracksContainerStyle}>
         <div className={'playlistTracksHeader'} style={playlistTracksHeaderStyle}>

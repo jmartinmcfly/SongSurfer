@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import { Buffer } from 'buffer'
 import axios from 'axios'
 import { Configuration, OpenAIApi } from 'openai'
@@ -43,7 +43,13 @@ export const MainInterface = (props: MainInterfaceProps) => {
   const [spotifyPlayer, setSpotifyPlayer] = useState<any>(null)
   const [deviceId, setDeviceId] = useState<string>('')
   const [currentPlaylist, setCurrentPlaylist] = useState<any>(null)
+
+  // waiting for chat response
+  const [isLoading, setIsLoading] = useState<boolean>(false)
+
   const location = useLocation()
+
+  const mainInterfaceContainerRef = useRef<HTMLDivElement>(null)
 
   // passed to the ChatVisualizer for rendering. Excludes tokens meant for prompt engineering.
   const [viewChatHistory, setViewChatHistory] = useState<
@@ -169,6 +175,7 @@ export const MainInterface = (props: MainInterfaceProps) => {
   // then, review this whole compoment and make sure it's all good
   // then, head back to the project plan
   const onChatSubmit = async (message: string) => {
+    setIsLoading(true)
     console.log('submitting')
     // append message prelude
     const messagePrelude =
@@ -249,23 +256,24 @@ export const MainInterface = (props: MainInterfaceProps) => {
             console.log('response message:')
             console.log(responseMessage)
             // set trunc chat history to keep in system prompts for GPT-3.5's context
-            setTruncatedChatHistoryIncSystem((prevItems) => [
-              ...prevItems,
-              { role: Role.Assistant, content: responseMessage },
-            ])
-            // parse out playlist actions from the response message
             const { playlistActions, parsedResponseMessage } =
               parseResponse(responseMessage)
+            setTimeout(() => {
+              setTruncatedChatHistoryIncSystem((prevItems) => [
+                ...prevItems,
+                { role: Role.Assistant, content: responseMessage },
+              ])
+              // parse out playlist actions from the response message
 
-            console.log('playlist actions: ')
-            console.log(playlistActions)
-            console.log('parsed response message: ')
-            console.log(parsedResponseMessage)
+              console.log('parsed response message: ')
+              console.log(parsedResponseMessage)
 
-            setViewChatHistory((prevItems) => [
-              ...prevItems,
-              { role: Role.Assistant, content: parsedResponseMessage },
-            ])
+              setViewChatHistory((prevItems) => [
+                ...prevItems,
+                { role: Role.Assistant, content: parsedResponseMessage },
+              ])
+              setIsLoading(false)
+            }, 100)
 
             if (playlistActions.length == 0) {
               return
@@ -306,7 +314,6 @@ export const MainInterface = (props: MainInterfaceProps) => {
 
               console.log('promiseArray')
               console.log(tracksPromiseArray)
-              // TODO check this works
 
               Promise.all(tracksPromiseArray).then((spotifyTracks) => {
                 console.log('spotify tracks: ')
@@ -402,11 +409,16 @@ export const MainInterface = (props: MainInterfaceProps) => {
         })
         .catch((error) => {
           console.log(error)
+          setIsLoading(false)
         })
     })
   }
 
-  // TODO implement
+  const cleanExtraNewLines = (message: string): string => {
+    const pattern = /(\n\s*){3,}/g // Matches 3 or more newlines, even if separated by spaces
+    return message.replace(pattern, '\n\n') // Replace with double new lines
+  }
+
   // trims out tokens to prevent model from overloading its ~4200 token limit
   const trimTokens = async (
     message: string,
@@ -476,7 +488,7 @@ export const MainInterface = (props: MainInterfaceProps) => {
       const { jsonObject, beforeJson, afterJson } = splitJsonFromString(responseMessage)
       const playlistActions = jsonObject.actionList
       // TODO: check formatting of parsed response message
-      const parsedResponseMessage = beforeJson + afterJson
+      const parsedResponseMessage = cleanExtraNewLines(beforeJson + afterJson)
 
       return { playlistActions, parsedResponseMessage }
     } catch (error) {
@@ -524,9 +536,11 @@ export const MainInterface = (props: MainInterfaceProps) => {
   const basicStyle: React.CSSProperties = {
     display: 'flex',
     flexDirection: 'column',
-    justifyContent: 'center',
+    justifyContent: 'flexStart',
     alignItems: 'center',
     width: '100%',
+    minHeight: '100vh',
+    paddingTop: '20px',
     background: 'linear-gradient(to bottom right, #1a1a1a, #0e0e0e)',
   }
 
@@ -564,7 +578,11 @@ export const MainInterface = (props: MainInterfaceProps) => {
 
   // TODO: flesh out chat components.
   return (
-    <div style={basicStyle}>
+    <div
+      className={'mainInterfaceContainter'}
+      style={basicStyle}
+      ref={mainInterfaceContainerRef}
+    >
       <AuthHandler
         setAccessToken={setAccessToken}
         setRefreshToken={setRefreshToken}
@@ -579,6 +597,7 @@ export const MainInterface = (props: MainInterfaceProps) => {
             userImageUrl={
               'https://i.scdn.co/image/ab67616d00001e02ff9ca10b55ce82ae553c8228'
             }
+            isLoading={isLoading}
           />
           <ChatInput onSubmit={onChatSubmit} />
         </div>

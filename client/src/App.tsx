@@ -1,5 +1,6 @@
 import React from 'react'
 import { RouteContainer } from './components/RouteContainer'
+import './App.scss'
 
 const style = {
   display: 'flex',
