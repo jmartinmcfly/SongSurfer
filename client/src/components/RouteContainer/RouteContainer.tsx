@@ -7,6 +7,7 @@ import { AuthRedirect } from '../Auth/AuthRedirect/AuthRedirect'
 import {} from '../../types'
 import './RouteContainer.scss'
 import { MainInterface } from '../MainInterface/MainInterface'
+import { Intro } from '../Intro/Intro'
 
 interface RouteContainerProps {
   style: any
@@ -62,6 +63,7 @@ export const RouteContainer = (props: RouteContainerProps) => {
     <div className="App" style={basicStyle}>
       {state != '' && (
         <Routes>
+          <Route path="/" element={<Intro />} />
           <Route
             path="/auth"
             element={

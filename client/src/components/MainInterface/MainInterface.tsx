@@ -17,6 +17,7 @@ import {
 } from '../Chat/ChatVisualizer/ChatVisualizer'
 import { ChatInput } from '../Chat/ChatInput/ChatInput'
 import { promptText, promptTestText, initialResponseText } from './promptText'
+import { Intro } from '../Intro/Intro'
 
 interface MainInterfaceProps {
   state: string
@@ -599,7 +600,7 @@ export const MainInterface = (props: MainInterfaceProps) => {
             }
             isLoading={isLoading}
           />
-          <ChatInput onSubmit={onChatSubmit} />
+          <ChatInput onSubmit={onChatSubmit} isLoading={isLoading} />
         </div>
       </div>
       <div className={'spotifyContainer'} style={spotifyContainerStyle}>

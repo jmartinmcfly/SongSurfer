@@ -29,5 +29,5 @@ export const AuthRedirect = (props: AuthRedirectProps) => {
     )
   })
 
-  return <div>Redirecting to Spotify</div>
+  return <div></div>
 }

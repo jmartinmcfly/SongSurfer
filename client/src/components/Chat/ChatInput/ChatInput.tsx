@@ -3,6 +3,7 @@ import SendIcon from '../../Utils/Svg/sendIcon'
 
 interface ChatInputProps {
   onSubmit: (value: string) => void
+  isLoading: boolean
 }
 
 type OverflowY =
@@ -73,6 +74,11 @@ export const ChatInput = (props: ChatInputProps) => {
     fill: sendIconSvgColor,
   }
 
+  const whileLoadingStyle: React.CSSProperties = {
+    ...sendIconStyle,
+    fill: '#616171',
+  }
+
   const sendIconDivStyle: React.CSSProperties = {
     display: 'flex',
     alignItems: 'center',
@@ -138,14 +144,20 @@ export const ChatInput = (props: ChatInputProps) => {
         rows={1}
         style={inputStyle}
       />
-      <div
-        onClick={handleSubmit}
-        onMouseEnter={handleMouseEnterSend}
-        onMouseLeave={handleMouseLeaveSend}
-        style={sendIconDivStyle}
-      >
-        <SendIcon style={sendIconStyle} />
-      </div>
+      {!props.isLoading ? (
+        <div
+          onClick={handleSubmit}
+          onMouseEnter={handleMouseEnterSend}
+          onMouseLeave={handleMouseLeaveSend}
+          style={sendIconDivStyle}
+        >
+          <SendIcon style={sendIconStyle} />
+        </div>
+      ) : (
+        <div style={sendIconDivStyle}>
+          <SendIcon style={whileLoadingStyle} />
+        </div>
+      )}
     </div>
   )
 }
