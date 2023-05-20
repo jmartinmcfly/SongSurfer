@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { Role } from '../../MainInterface/MainInterface'
 import ChatGptIcon from '../../Utils/Svg/chatGptIcon'
+import Typist from 'react-typist'
 import { preProcessFile } from 'typescript'
 import './ChatVisualizer.scss'
 
@@ -16,6 +17,7 @@ export const ChatVisualizer = (props: ChatVisualizerProps) => {
   const [lastChatRole, setLastChatRole] = useState<Role>(Role.Assistant)
   const [alternatingBackroundColor, setAlternatingBackgroundColor] =
     useState<string>('#ececf1')
+  const [skippedTyping, setSkippedTyping] = useState<boolean>(false)
 
   // Refs:
   const chatVisualizerRef = useRef<HTMLDivElement>(null)
@@ -36,6 +38,108 @@ export const ChatVisualizer = (props: ChatVisualizerProps) => {
       let localChatTextStyle = chatTextStyle
       let localChatImageContainerStyle = chatImageContainerStyle
 
+      // load animation
+      if (props.chatHistory.length == 1) {
+        setAlternatingBackgroundColor('#343641')
+
+        if (skippedTyping) {
+          console.log('skipped typing')
+          return (
+            <div className="assistantChat" style={assistantStyle} key={index}>
+              <div style={localChatImageContainerStyle}>
+                {/*<img src={DJGPT_IMAGE_URL} alt="DJ-GPT" style={chatImageStyle} />*/}
+                <ChatGptIcon style={chatImageStyle} />
+              </div>
+              <p style={localChatTextStyle}>{chat.content}</p>
+            </div>
+          )
+        }
+
+        let componentList = []
+
+        // TODO: add breaks every line break or period
+        const arr = chat.content.match(/[^\,\:\!\.|\n]*[\,\:\!\.|\n]/g)
+        // hack to get around react syntax contraints and the
+        // limitations of the react-typist library
+        if (arr) {
+          for (let i = 0; i < arr.length; i++) {
+            console.log('heres')
+            if (i == 0) {
+              componentList.push(<Typist.Delay ms={1000} />)
+              componentList.push(arr[i])
+            } else if (i == 1) {
+              if (arr[i].charAt(arr.length - 1) == ',') {
+                componentList.push(<Typist.Delay ms={100} />)
+                componentList.push(arr[i])
+              } else {
+                componentList.push(<Typist.Delay ms={600} />)
+                componentList.push(arr[i])
+              }
+            } else {
+              if (arr[i].charAt(arr.length - 1) == ',') {
+                componentList.push(<Typist.Delay ms={100} />)
+                componentList.push(arr[i])
+              } else {
+                if (i < arr.length - 1 && arr[i + 1] == '\n' && arr[i] == '\n') {
+                  componentList.push(arr[i])
+                }
+                componentList.push(<Typist.Delay ms={350} />)
+                componentList.push(arr[i])
+              }
+            }
+          }
+
+          return (
+            <div
+              className="assistantChat"
+              style={assistantStyle}
+              onClick={handleSkipTyping}
+              key={index}
+            >
+              <div style={localChatImageContainerStyle}>
+                {/*<img src={DJGPT_IMAGE_URL} alt="DJ-GPT" style={chatImageStyle} />*/}
+                <ChatGptIcon style={chatImageStyle} />
+              </div>
+
+              <p style={localChatTextStyle}>
+                <Typist
+                  cursor={{
+                    show: true,
+                    blink: true,
+                  }}
+                  avgTypingDelay={55}
+                >
+                  {componentList}
+                </Typist>
+              </p>
+            </div>
+          )
+        } else {
+          console.error('problem parsing first message')
+          return (
+            <div className="assistantChat" style={assistantStyle} key={index}>
+              <div style={localChatImageContainerStyle}>
+                {/*<img src={DJGPT_IMAGE_URL} alt="DJ-GPT" style={chatImageStyle} />*/}
+                <ChatGptIcon style={chatImageStyle} />
+              </div>
+
+              <p style={localChatTextStyle}>
+                <Typist
+                  cursor={{
+                    show: true,
+                    blink: true,
+                  }}
+                  avgTypingDelay={55}
+                >
+                  {chat.content}
+                </Typist>
+              </p>
+            </div>
+          )
+        }
+      }
+
+      // regular rendering
       if (index == 0) {
         localChatTextStyle = firstChatTextStyle
         localChatImageContainerStyle = firstImageContainerStyle
@@ -98,7 +202,14 @@ export const ChatVisualizer = (props: ChatVisualizerProps) => {
     }
 
     setChatList(chatList)
-  }, [props.chatHistory])
+  }, [props.chatHistory, skippedTyping])
+
+  // Handlers:
+
+  const handleSkipTyping = () => {
+    console.log('skippy')
+    setSkippedTyping(true)
+  }
 
   // Styles:
 

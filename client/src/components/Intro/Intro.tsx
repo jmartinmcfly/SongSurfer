@@ -72,6 +72,7 @@ export const Intro = (props: IntroProps): JSX.Element => {
               blink: true,
             }}
           >
+            <Typist.Delay ms={470} />
             Login with Spotify to Begin
           </Typist>
         </div>
