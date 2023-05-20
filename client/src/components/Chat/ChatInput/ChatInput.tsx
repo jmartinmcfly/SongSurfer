@@ -154,7 +154,7 @@ export const ChatInput = (props: ChatInputProps) => {
           <SendIcon style={sendIconStyle} />
         </div>
       ) : (
-        <div style={sendIconDivStyle}>
+        <div onMouseLeave={handleMouseLeaveSend} style={sendIconDivStyle}>
           <SendIcon style={whileLoadingStyle} />
         </div>
       )}

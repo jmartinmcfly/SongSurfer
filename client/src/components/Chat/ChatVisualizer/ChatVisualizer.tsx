@@ -12,12 +12,17 @@ export interface ChatVisualizerProps {
 }
 
 export const ChatVisualizer = (props: ChatVisualizerProps) => {
+  // consts
+  const chatVisualizerHeight = 250
+
   // State:
   const [chatList, setChatList] = useState<JSX.Element[]>([])
   const [lastChatRole, setLastChatRole] = useState<Role>(Role.Assistant)
   const [alternatingBackroundColor, setAlternatingBackgroundColor] =
     useState<string>('#ececf1')
   const [skippedTyping, setSkippedTyping] = useState<boolean>(false)
+  const [lastSkippedLen, setLastSkippedLen] = useState<number>(0)
+  const [isScrolled, setIsScrolled] = useState<boolean>(false)
 
   // Refs:
   const chatVisualizerRef = useRef<HTMLDivElement>(null)
@@ -25,11 +30,89 @@ export const ChatVisualizer = (props: ChatVisualizerProps) => {
   const DJGPT_IMAGE_URL = ''
   // Hooks:
 
+  // makes a typing animation wrapper for a given chat
+  const makeTypingAnimation = (
+    chat: {
+      role: Role
+      content: string
+    },
+    avgTypingDelay: number
+  ): JSX.Element | string => {
+    let componentList = []
+
+    const arr = chat.content.match(/[^\,\:\!\.|\n]*[\,\:\!\.|\n]/g)
+    // hack to get around react syntax contraints and the
+    // limitations of the react-typist library
+    if (arr) {
+      for (let i = 0; i < arr.length; i++) {
+        console.log('heres')
+        if (i == 0) {
+          componentList.push(<Typist.Delay ms={1000} />)
+          componentList.push(arr[i])
+        } else if (i == 1) {
+          if (arr[i].charAt(arr.length - 1) == ',') {
+            componentList.push(<Typist.Delay ms={100} />)
+            componentList.push(arr[i])
+          } else {
+            componentList.push(<Typist.Delay ms={600} />)
+            componentList.push(arr[i])
+          }
+        } else {
+          if (arr[i].charAt(arr.length - 1) == ',') {
+            componentList.push(<Typist.Delay ms={100} />)
+            componentList.push(arr[i])
+          } else {
+            if (i < arr.length - 1 && arr[i + 1] == '\n' && arr[i] == '\n') {
+              componentList.push(arr[i])
+            }
+            componentList.push(<Typist.Delay ms={350} />)
+            componentList.push(arr[i])
+          }
+        }
+      }
+
+      return (
+        <Typist
+          cursor={{
+            show: true,
+            blink: true,
+          }}
+          avgTypingDelay={avgTypingDelay}
+          onCharacterTyped={() => {
+            if (!isScrolled) {
+              scrollToBottom()
+            }
+          }}
+        >
+          {componentList}
+        </Typist>
+      )
+    } else {
+      return chat.content
+    }
+  }
+
+  // adds a scroll listener to the chat visualizer
+  useEffect(() => {
+    const div = chatVisualizerRef.current
+    div?.addEventListener('scroll', handleScroll)
+
+    return () => {
+      div?.removeEventListener('scroll', handleScroll)
+    }
+  })
+
+  // reset skippedTyping when a new message appears
+  useEffect(() => {
+    if (props.chatHistory.length !== lastSkippedLen) {
+      setSkippedTyping(false)
+      setLastSkippedLen(props.chatHistory.length)
+    }
+  }, [props.chatHistory])
+
   // autoscroll chatbox to bottom
   useEffect(() => {
-    if (chatVisualizerRef.current) {
-      chatVisualizerRef.current.scrollTop = chatVisualizerRef.current.scrollHeight
-    }
+    scrollToBottom()
   }, [chatList])
 
   // generate the chat list from history
@@ -37,107 +120,8 @@ export const ChatVisualizer = (props: ChatVisualizerProps) => {
     const chatList = props.chatHistory.map((chat, index) => {
       let localChatTextStyle = chatTextStyle
       let localChatImageContainerStyle = chatImageContainerStyle
-
-      // load animation
-      if (props.chatHistory.length == 1) {
-        setAlternatingBackgroundColor('#343641')
-
-        if (skippedTyping) {
-          console.log('skipped typing')
-          return (
-            <div className="assistantChat" style={assistantStyle} key={index}>
-              <div style={localChatImageContainerStyle}>
-                {/*<img src={DJGPT_IMAGE_URL} alt="DJ-GPT" style={chatImageStyle} />*/}
-                <ChatGptIcon style={chatImageStyle} />
-              </div>
-              <p style={localChatTextStyle}>{chat.content}</p>
-            </div>
-          )
-        }
-
-        let componentList = []
-
-        // TODO: add breaks every line break or period
-        const arr = chat.content.match(/[^\,\:\!\.|\n]*[\,\:\!\.|\n]/g)
-        // hack to get around react syntax contraints and the
-        // limitations of the react-typist library
-        if (arr) {
-          for (let i = 0; i < arr.length; i++) {
-            console.log('heres')
-            if (i == 0) {
-              componentList.push(<Typist.Delay ms={1000} />)
-              componentList.push(arr[i])
-            } else if (i == 1) {
-              if (arr[i].charAt(arr.length - 1) == ',') {
-                componentList.push(<Typist.Delay ms={100} />)
-                componentList.push(arr[i])
-              } else {
-                componentList.push(<Typist.Delay ms={600} />)
-                componentList.push(arr[i])
-              }
-            } else {
-              if (arr[i].charAt(arr.length - 1) == ',') {
-                componentList.push(<Typist.Delay ms={100} />)
-                componentList.push(arr[i])
-              } else {
-                if (i < arr.length - 1 && arr[i + 1] == '\n' && arr[i] == '\n') {
-                  componentList.push(arr[i])
-                }
-                componentList.push(<Typist.Delay ms={350} />)
-                componentList.push(arr[i])
-              }
-            }
-          }
-
-          return (
-            <div
-              className="assistantChat"
-              style={assistantStyle}
-              onClick={handleSkipTyping}
-              key={index}
-            >
-              <div style={localChatImageContainerStyle}>
-                {/*<img src={DJGPT_IMAGE_URL} alt="DJ-GPT" style={chatImageStyle} />*/}
-                <ChatGptIcon style={chatImageStyle} />
-              </div>
-
-              <p style={localChatTextStyle}>
-                <Typist
-                  cursor={{
-                    show: true,
-                    blink: true,
-                  }}
-                  avgTypingDelay={55}
-                >
-                  {componentList}
-                </Typist>
-              </p>
-            </div>
-          )
-        } else {
-          console.error('problem parsing first message')
-          return (
-            <div className="assistantChat" style={assistantStyle} key={index}>
-              <div style={localChatImageContainerStyle}>
-                {/*<img src={DJGPT_IMAGE_URL} alt="DJ-GPT" style={chatImageStyle} />*/}
-                <ChatGptIcon style={chatImageStyle} />
-              </div>
-
-              <p style={localChatTextStyle}>
-                <Typist
-                  cursor={{
-                    show: true,
-                    blink: true,
-                  }}
-                  avgTypingDelay={55}
-                >
-                  {chat.content}
-                </Typist>
-              </p>
-            </div>
-          )
-        }
-      }
+      // typing animation for last chat or just chat.content
+      let toReturn: any = chat.content
 
       // regular rendering
       if (index == 0) {
@@ -145,9 +129,16 @@ export const ChatVisualizer = (props: ChatVisualizerProps) => {
         localChatImageContainerStyle = firstImageContainerStyle
       }
 
-      // set styles for last chat item so margins are correct
+      // set styles and for last chat item so margins are correct and make animation
       if (index == props.chatHistory.length - 1) {
+        let avgTypingDelay = 35
+
+        if (props.chatHistory.length == 0) {
+          avgTypingDelay = 55
+        }
+
         // if its loading, last message is the loading message
+        // TODO: style glitch for first message when it's the only message
         if (!props.isLoading) {
           console.log('last')
           localChatTextStyle = lastChatTextStyle
@@ -155,32 +146,47 @@ export const ChatVisualizer = (props: ChatVisualizerProps) => {
           if (chat.role == Role.User) {
             // set opposite color
             setAlternatingBackgroundColor('#444654')
+            toReturn = chat.content
           } else {
             setAlternatingBackgroundColor('#343641')
+            // if we haven't skipped typing, render the loading animation
+            if (!skippedTyping) {
+              toReturn = makeTypingAnimation(chat, avgTypingDelay)
+            } else {
+              toReturn = chat.content
+            }
           }
         }
       }
-
-      // TODO: START HERE
       // fix border radius bottom left and bottom right on last chat item
 
       if (chat.role == Role.User) {
         return (
-          <div className="userChat" style={userStyle} key={index}>
+          <div
+            className="userChat"
+            style={userStyle}
+            key={index}
+            onClick={handleSkipTyping}
+          >
             <div style={localChatImageContainerStyle}>
               <img src={props.userImageUrl} alt="User" style={chatImageStyle} />
             </div>
-            <p style={localChatTextStyle}>{chat.content}</p>
+            <p style={localChatTextStyle}>{toReturn}</p>
           </div>
         )
       } else {
         return (
-          <div className="assistantChat" style={assistantStyle} key={index}>
+          <div
+            className="assistantChat"
+            style={assistantStyle}
+            key={index}
+            onClick={handleSkipTyping}
+          >
             <div style={localChatImageContainerStyle}>
               {/*<img src={DJGPT_IMAGE_URL} alt="DJ-GPT" style={chatImageStyle} />*/}
               <ChatGptIcon style={chatImageStyle} />
             </div>
-            <p style={localChatTextStyle}>{chat.content}</p>
+            <p style={localChatTextStyle}>{toReturn}</p>
           </div>
         )
       }
@@ -207,8 +213,22 @@ export const ChatVisualizer = (props: ChatVisualizerProps) => {
   // Handlers:
 
   const handleSkipTyping = () => {
-    console.log('skippy')
     setSkippedTyping(true)
+  }
+
+  // sets isScrolled true if user has scroleld anywhere but the bottom
+  // important to allow user scrolling during navigation, but still
+  // have auto scroll for typing animation
+  const handleScroll = () => {
+    if (chatVisualizerRef.current) {
+      setIsScrolled(true)
+    }
+  }
+
+  const scrollToBottom = () => {
+    if (chatVisualizerRef.current) {
+      chatVisualizerRef.current.scrollTop = chatVisualizerRef.current.scrollHeight
+    }
   }
 
   // Styles:
@@ -221,14 +241,10 @@ export const ChatVisualizer = (props: ChatVisualizerProps) => {
     backgroundColor: '#343641',
     paddingRight: '5px',
     paddingLeft: '5px',
+    paddingBottom: '5px',
+    paddingTop: '5px',
     color: '#ececf1',
     whiteSpace: 'pre-wrap',
-  }
-
-  const lastUserStyle: React.CSSProperties = {
-    ...userStyle,
-    borderBottomLeftRadius: '10px',
-    borderBottomRightRadius: '10px',
   }
 
   const assistantStyle: React.CSSProperties = {
@@ -239,6 +255,8 @@ export const ChatVisualizer = (props: ChatVisualizerProps) => {
     backgroundColor: '#444654',
     paddingRight: '5px',
     paddingLeft: '5px',
+    paddingBottom: '5px',
+    paddingTop: '5px',
     color: '#cfd3da',
     whiteSpace: 'pre-wrap',
   }
@@ -252,7 +270,7 @@ export const ChatVisualizer = (props: ChatVisualizerProps) => {
   const chatVisualizerStyle: React.CSSProperties = {
     display: 'flex',
     width: '100%',
-    height: '250px',
+    height: chatVisualizerHeight.toString() + 'px',
     margin: '10px',
     borderRadius: '10px 10px 0px 10px',
     flexDirection: 'column',
@@ -265,23 +283,20 @@ export const ChatVisualizer = (props: ChatVisualizerProps) => {
   const firstChatTextStyle: React.CSSProperties = {
     marginLeft: '5px',
     marginTop: '15px',
-    marginBottom: '10px',
     marginRight: '15px',
-  }
-
-  const chatTextStyle: React.CSSProperties = {
-    marginLeft: '5px',
-    marginTop: '10px',
-    marginBottom: '10px',
-    marginRight: '20px',
   }
 
   const lastChatTextStyle: React.CSSProperties = {
     marginLeft: '5px',
     marginTop: '10px',
-    marginBottom: '20px',
     marginRight: '15px',
     borderRadius: '0 0 10px 10px',
+  }
+
+  const chatTextStyle: React.CSSProperties = {
+    marginLeft: '5px',
+    marginTop: '10px',
+    marginRight: '20px',
   }
 
   const firstImageContainerStyle: React.CSSProperties = {
