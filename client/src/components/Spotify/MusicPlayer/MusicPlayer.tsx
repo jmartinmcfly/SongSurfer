@@ -19,8 +19,9 @@ interface MusicPlayerProps {
 
 interface track {
   name: string
+  uri: string
   album: { images: { url: string }[] }
-  artists: { name: string }[]
+  artists: { name: string; uri: string }[]
 }
 
 declare global {
@@ -203,6 +204,20 @@ export const MusicPlayer = (props: MusicPlayerProps) => {
     // Seek the player to the new progress value here.
   }
 
+  const handleTrackRedirect = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (currentTrack !== null) {
+      const uri = currentTrack.uri.replace('spotify:track:', '')
+      window.open('https://open.spotify.com/track/' + uri)
+    }
+  }
+
+  const handleArtistRedirect = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (currentTrack !== null) {
+      const uri = currentTrack.artists[0].uri.replace('spotify:artist:', '')
+      window.open('https://open.spotify.com/artist/' + uri)
+    }
+  }
+
   // styles
 
   const playerDivStyle: React.CSSProperties = {
@@ -238,6 +253,11 @@ export const MusicPlayer = (props: MusicPlayerProps) => {
     display: 'flex',
     flexDirection: 'row',
     alignItems: 'center',
+    width: '200px',
+    whiteSpace: 'nowrap',
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
+    color: 'white',
   }
 
   const trackNameStyle: React.CSSProperties = {
@@ -245,6 +265,9 @@ export const MusicPlayer = (props: MusicPlayerProps) => {
     fontSize: '14px',
     fontWeight: 'bold',
     marginBottom: '3px',
+    whiteSpace: 'nowrap',
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
   }
 
   const albumNameStyle: React.CSSProperties = {
@@ -266,6 +289,7 @@ export const MusicPlayer = (props: MusicPlayerProps) => {
     flexDirection: 'column',
     justifyContent: 'center',
     alignItems: 'center',
+    zIndex: 10,
   }
 
   const progressStyle: React.CSSProperties = {
@@ -304,9 +328,19 @@ export const MusicPlayer = (props: MusicPlayerProps) => {
 
         <div className="trackTextContainer" style={trackTextContainerStyle}>
           <div className={'trackText'} style={trackTextStyle}>
-            <div style={trackNameStyle}>{currentTrack !== null && currentTrack.name}</div>
+            <div
+              className="clickableText"
+              style={trackNameStyle}
+              onClick={handleTrackRedirect}
+            >
+              {currentTrack !== null && currentTrack.name}
+            </div>
 
-            <div style={albumNameStyle}>
+            <div
+              className="clickableText"
+              style={albumNameStyle}
+              onClick={handleArtistRedirect}
+            >
               {currentTrack !== null && currentTrack.artists[0].name}
             </div>
           </div>

@@ -92,3 +92,10 @@ input[type='range']:focus::-moz-range-track {
   border-radius: 50%;
   fill: #45edc4;
 }
+
+.clickableText {
+  cursor: pointer;
+  &:hover {
+    text-decoration: underline;
+  }
+}
