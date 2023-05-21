@@ -11,6 +11,10 @@ export interface ChatVisualizerProps {
   isLoading: boolean
 }
 
+// to get around parallelism issues with useState
+let isProgrammaticallyScrolling = false
+let isScrolled = false
+
 export const ChatVisualizer = (props: ChatVisualizerProps) => {
   // consts
   const chatVisualizerHeight = 250
@@ -22,7 +26,6 @@ export const ChatVisualizer = (props: ChatVisualizerProps) => {
     useState<string>('#ececf1')
   const [skippedTyping, setSkippedTyping] = useState<boolean>(false)
   const [lastSkippedLen, setLastSkippedLen] = useState<number>(0)
-  const [isScrolled, setIsScrolled] = useState<boolean>(false)
 
   // Refs:
   const chatVisualizerRef = useRef<HTMLDivElement>(null)
@@ -112,6 +115,7 @@ export const ChatVisualizer = (props: ChatVisualizerProps) => {
 
   // autoscroll chatbox to bottom
   useEffect(() => {
+    isScrolled = false
     scrollToBottom()
   }, [chatList])
 
@@ -220,15 +224,26 @@ export const ChatVisualizer = (props: ChatVisualizerProps) => {
   // important to allow user scrolling during navigation, but still
   // have auto scroll for typing animation
   const handleScroll = () => {
-    if (chatVisualizerRef.current) {
-      setIsScrolled(true)
+    if (chatVisualizerRef.current && !isProgrammaticallyScrolling) {
+      console.log('scrollingggg')
+      isScrolled = true
+
+      if (
+        chatVisualizerRef.current.scrollTop ==
+        chatVisualizerRef.current.scrollHeight - chatVisualizerHeight
+      ) {
+        console.log('bottom scroll')
+        isScrolled = false
+      }
     }
   }
 
   const scrollToBottom = () => {
+    isProgrammaticallyScrolling = true
     if (chatVisualizerRef.current) {
       chatVisualizerRef.current.scrollTop = chatVisualizerRef.current.scrollHeight
     }
+    isProgrammaticallyScrolling = false
   }
 
   // Styles:
@@ -278,6 +293,8 @@ export const ChatVisualizer = (props: ChatVisualizerProps) => {
     justifyContent: 'flex-start',
     overflowY: 'scroll',
     backgroundColor: alternatingBackroundColor,
+    fontSize: '12px',
+    lineHeight: '1.5',
   }
 
   const firstChatTextStyle: React.CSSProperties = {

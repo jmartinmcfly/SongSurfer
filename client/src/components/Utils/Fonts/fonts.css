@@ -1,0 +1,23 @@
+@font-face {
+  font-family: 'Orbitron';
+  src: local('Orbitron'), url(./Orbitron/Orbitron-Regular.ttf) format('truetype');
+  font-weight: 300;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Space Mono';
+  src: local('Space Mono'), url(./SpaceMono/SpaceMono-Regular.ttf) format('truetype');
+  font-weight: 300;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Press Start 2P';
+  src: url(./PressStart2p/PressStart2P-Regular.ttf) format('truetype');
+}
+
+@font-face {
+  font-family: 'Nova Square';
+  src: url(./NovaSquare/NovaSquare.ttf) format('truetype');
+}

@@ -18,6 +18,7 @@ import {
 import { ChatInput } from '../Chat/ChatInput/ChatInput'
 import { promptText, promptTestText, initialResponseText } from './promptText'
 import { Intro } from '../Intro/Intro'
+import './MainInterface.scss'
 
 interface MainInterfaceProps {
   state: string
@@ -417,7 +418,11 @@ export const MainInterface = (props: MainInterfaceProps) => {
 
   const cleanExtraNewLines = (message: string): string => {
     const pattern = /(\n\s*){3,}/g // Matches 3 or more newlines, even if separated by spaces
-    return message.replace(pattern, '\n\n') // Replace with double new lines
+    const parsed1 = message.replace(pattern, '\n\n') // Replace with double new lines
+    const pattern2 = /(\s*)$/ //Matches trailing newlines and spaces
+    const parsed2 = parsed1.replace(pattern2, '') // Replace with no trailing newlines or spaces
+
+    return parsed2
   }
 
   // trims out tokens to prevent model from overloading its ~4200 token limit
@@ -580,7 +585,7 @@ export const MainInterface = (props: MainInterfaceProps) => {
   // TODO: flesh out chat components.
   return (
     <div
-      className={'mainInterfaceContainter'}
+      className={'mainInterfaceContainer'}
       style={basicStyle}
       ref={mainInterfaceContainerRef}
     >
