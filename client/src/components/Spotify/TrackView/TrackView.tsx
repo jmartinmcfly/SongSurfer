@@ -230,7 +230,7 @@ export const TrackView = (props: trackViewProps) => {
       display: 'flex',
       width: '33px',
       justifyContent: 'flex-end',
-      alignItems: 'center',
+      paddingTop: '2px',
       paddingRight: '7px',
     })
   }
