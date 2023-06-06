@@ -45,6 +45,13 @@ export const MainInterface = (props: MainInterfaceProps) => {
   const [spotifyPlayer, setSpotifyPlayer] = useState<any>(null)
   const [deviceId, setDeviceId] = useState<string>('')
   const [currentPlaylist, setCurrentPlaylist] = useState<any>(null)
+  const [newlyAddedSongUris, setNewlyAddedSongUris] = useState<string[]>([])
+
+  const [isModified, setIsModified] = useState<boolean>(false)
+  const [addedNum, setAddedNum] = useState<Number>(0)
+  const [subtractedNum, setSubtractedNum] = useState<Number>(0)
+  const [numNotificationTextList, setNumNotificationTextList] = useState<string[]>([])
+  const [isFading, setIsFading] = useState<boolean>(false)
 
   // waiting for chat response
   const [isLoading, setIsLoading] = useState<boolean>(false)
@@ -152,6 +159,42 @@ export const MainInterface = (props: MainInterfaceProps) => {
     }
   }, [deviceId])
 
+  // handle modifiedNotification
+  // TODO: START HERE
+  useEffect(() => {
+    if (isModified) {
+      let tempDivList = []
+      if (addedNum !== 0) {
+        tempDivList.push('+ ' + addedNum.toString())
+      }
+
+      if (subtractedNum !== 0 && addedNum !== 0) {
+        tempDivList.push(', - ' + subtractedNum.toString())
+      } else if (subtractedNum !== 0) {
+        tempDivList.push('- ' + subtractedNum.toString())
+      }
+
+      setNumNotificationTextList(tempDivList)
+
+      // fade out after 5s
+      console.log('timeout')
+      setTimeout(() => {
+        console.log('timeout running')
+        setIsFading(true)
+        console.log('fading')
+
+        // make div not render after fade
+        setTimeout(() => {
+          console.log('byebye')
+          setIsModified(false)
+          setIsFading(false)
+          setAddedNum(0)
+          setSubtractedNum(0)
+        }, 2200)
+      }, 5000)
+    }
+  }, [isModified])
+
   // API calls:
 
   async function fetchProfileData(): Promise<any> {
@@ -171,6 +214,15 @@ export const MainInterface = (props: MainInterfaceProps) => {
   }
 
   // Event handlers:
+
+  const handleNotificationClick = () => {
+    window.scrollTo({
+      top: document.documentElement.scrollHeight,
+      behavior: 'smooth',
+    })
+
+    setIsFading(true)
+  }
 
   // TODO: implement and test
   // START HERE: clean out the console.logs
@@ -284,6 +336,9 @@ export const MainInterface = (props: MainInterfaceProps) => {
             // TODO: call spotify api to update playlist
             // call spotify api to update playlist
 
+            let addedTotal = 0
+            let subtractedTotal = 0
+
             for (const action of playlistActions) {
               // list of spotify uris for modifying the playlist
               // TODO START HERE review and continue
@@ -322,6 +377,7 @@ export const MainInterface = (props: MainInterfaceProps) => {
                 console.log(spotifyTracks)
                 let apiResponse: Promise<any> | null = null
 
+                // filter out bad spotify responses
                 const spotifyTracksFinal = spotifyTracks.filter(
                   (value) => value !== undefined
                 )
@@ -332,7 +388,6 @@ export const MainInterface = (props: MainInterfaceProps) => {
 
                 if (action.actionType == 'add') {
                   // Add Items to Playlist
-                  console.log('add')
                   apiResponse = axios
                     .post(
                       'https://api.spotify.com/v1/playlists/' +
@@ -346,6 +401,16 @@ export const MainInterface = (props: MainInterfaceProps) => {
                       }
                     )
                     .then((resp) => {
+                      console.log(spotifyTracksFinal)
+                      setNewlyAddedSongUris(spotifyTracksFinal)
+                      setTimeout(() => {
+                        console.log('setting newly added off')
+                        let empty: any[] = []
+                        setNewlyAddedSongUris(empty)
+                      }, 5000)
+
+                      setAddedNum(spotifyTracksFinal.length)
+                      setIsModified(true)
                       console.log(resp)
                     })
                 } else if (action.actionType == 'remove') {
@@ -366,10 +431,13 @@ export const MainInterface = (props: MainInterfaceProps) => {
                       }
                     )
                     .then((resp) => {
+                      setSubtractedNum(spotifyTracksFinal.length)
+                      setIsModified(true)
                       console.log(resp)
                     })
                 } else if (action.actionType == 'replace') {
                   console.log('replace')
+
                   // Update Playlist Items
                   apiResponse = axios
                     .put(
@@ -382,7 +450,15 @@ export const MainInterface = (props: MainInterfaceProps) => {
                       }
                     )
                     .then((resp) => {
+                      setNewlyAddedSongUris(spotifyTracksFinal)
+                      setTimeout(() => {
+                        let empty: any[] = []
+                        setNewlyAddedSongUris(empty)
+                      }, 5000)
                       console.log(resp)
+                      setSubtractedNum(currentPlaylist.tracks.items.length)
+                      setAddedNum(spotifyTracksFinal.length)
+                      setIsModified(true)
                     })
                 } else {
                   apiResponse = null
@@ -404,6 +480,10 @@ export const MainInterface = (props: MainInterfaceProps) => {
                 }
               })
             }
+
+            console.log('pre if ')
+            console.log('added total:')
+            console.log(addedTotal)
           } else {
             console.log('No response message found.')
             console.log(resp.data)
@@ -582,6 +662,22 @@ export const MainInterface = (props: MainInterfaceProps) => {
     // #313131
   }
 
+  const modifiedNotificationStyle: React.CSSProperties = {
+    display: 'flex',
+    alignItems: 'flex-end',
+    position: 'fixed',
+    fontSize: '11px',
+    bottom: '0',
+    left: '0',
+    right: '0',
+    paddingBottom: '5px',
+    paddingLeft: '10px',
+    background: 'linear-gradient(to bottom, transparent, #fefefe)',
+    height: '24px',
+    width: '100vw',
+    color: '#444654',
+  }
+
   // TODO: flesh out chat components.
   return (
     <div
@@ -624,9 +720,22 @@ export const MainInterface = (props: MainInterfaceProps) => {
             currentPlaylist={currentPlaylist}
             player={spotifyPlayer}
             deviceId={deviceId}
+            // TODO
+            newlyAddedSongUris={newlyAddedSongUris}
+            setCurrentPlaylist={setCurrentPlaylist}
           />
         )}
       </div>
+
+      {isModified && (
+        <div
+          className={isFading ? 'modifiedNotification fade' : 'modifiedNotification'}
+          style={modifiedNotificationStyle}
+          onClick={handleNotificationClick}
+        >
+          {numNotificationTextList}
+        </div>
+      )}
     </div>
   )
 }

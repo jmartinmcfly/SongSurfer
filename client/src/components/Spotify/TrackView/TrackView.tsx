@@ -7,6 +7,8 @@ import PauseIcon from '../../Utils/Svg/pauseIcon'
 import { kMaxLength } from 'buffer'
 import '../MusicPlayer/MusicPlayer.scss'
 import './TrackView.scss'
+import XIcon from '../../Utils/Svg/xIcon'
+import { decodedTextSpanIntersectsWith } from 'typescript'
 
 // TODO: Trackview needs to know if its currently playing
 interface trackViewProps {
@@ -27,16 +29,25 @@ interface trackViewProps {
   currentPlaylist: any
   isCurrentTrack: boolean
   isPlaying: boolean
+  newlyAddedSongUris: string[]
+  setCurrentPlaylist: React.Dispatch<React.SetStateAction<any>>
 }
 
-// TODO: Fix track styling
-
-// TODO: add a click handler to the heart icons
 export const TrackView = (props: trackViewProps) => {
+  const [trackNumWrapperStyle, setTrackNumWrapperStyle] = useState<React.CSSProperties>(
+    {}
+  )
+  const [trackNumStyle, setTrackNumStyle] = useState<React.CSSProperties>({})
   const [isHovering, setIsHovering] = useState<boolean>(false)
+  const [lengthIsHovering, setLengthIsHovering] = useState<boolean>(false)
   const [leftmostIcon, setLeftmostIcon] = useState<JSX.Element>(
     <div>{props.trackNumber}</div>
   )
+  const [lengthContainerStyle, setLengthContainerStyle] = useState<React.CSSProperties>({
+    display: 'flex',
+    width: '40px',
+    justifyContent: 'flex-end',
+  })
   // NOTE: Bug risk. This may not update in all circumstances but I think its fine
   const [isLiked, setIsLiked] = useState<boolean>(props.isLiked)
   // hooks
@@ -61,6 +72,77 @@ export const TrackView = (props: trackViewProps) => {
       }
     }
   }, [isHovering, props.isCurrentTrack, props.isPlaying])
+
+  // handle styling for isNew
+  // TODO: only last number is showing style
+  // if two digits, we lose part of the number because the div isn't large enough
+  useEffect(() => {
+    console.log('props.newlyAddedSongURIs: ', props.newlyAddedSongUris)
+    let isNew = false
+    for (const newUri of props.newlyAddedSongUris) {
+      // set true if match
+      isNew = isNew || props.trackUri === newUri
+    }
+
+    if (isNew) {
+      let width = ''
+      let marginLeft = ''
+      if (props.trackNumber < 10) {
+        width = '20px'
+        marginLeft = '-10px'
+      } else if (props.trackNumber < 100) {
+        width = '20px'
+        marginLeft = '-10px'
+      } else {
+        width = '30px'
+        marginLeft = ''
+      }
+      const trackNumberStyle: React.CSSProperties = {
+        display: 'flex',
+        justifyContent: 'flex-end',
+        alignItems: 'flex-end',
+        background: 'radial-gradient(circle, #fefefe, transparent)',
+      }
+
+      const trackNumberWrapperStyle: React.CSSProperties = {
+        display: 'flex',
+        justifyContent: 'flex-end',
+        width: width,
+        marginLeft: marginLeft,
+        marginRight: '15px',
+        borderRadius: '20%',
+        // TODO: background to the number's div, not it's wrapper
+        color: '#121212',
+      }
+      setTrackNumWrapperStyle(trackNumberWrapperStyle)
+      setTrackNumStyle(trackNumberStyle)
+
+      // hack because the timeout in MainInterface to set newlyAddeSongURIs
+      // isn't trigerring a rerender for some reason
+
+      setTimeout(() => {
+        const trackNumberWrapperStyle: React.CSSProperties = {
+          display: 'flex',
+          justifyContent: 'flex-end',
+          width: '10px',
+          marginRight: '15px',
+        }
+        const trackNumberStyle: React.CSSProperties = {}
+        setTrackNumWrapperStyle(trackNumberWrapperStyle)
+        setTrackNumStyle(trackNumberStyle)
+      }, 5000)
+    } else {
+      const trackNumberWrapperStyle: React.CSSProperties = {
+        display: 'flex',
+        justifyContent: 'flex-end',
+        width: '10px',
+        marginRight: '15px',
+      }
+      const trackNumberStyle: React.CSSProperties = {}
+      setTrackNumWrapperStyle(trackNumberWrapperStyle)
+      setTrackNumStyle(trackNumberStyle)
+    }
+  }, [props.newlyAddedSongUris])
 
   // event handlers
 
@@ -119,6 +201,48 @@ export const TrackView = (props: trackViewProps) => {
     window.open('https://open.spotify.com/artist/' + uri)
   }
 
+  const handleDelete = (e: React.MouseEvent<HTMLDivElement>) => {
+    // TODO
+    // Make API call to delete an item from the playlist
+    const result = axios
+      .delete(
+        'https://api.spotify.com/v1/playlists/' + props.currentPlaylist.id + '/tracks',
+        {
+          data: { tracks: [{ uri: props.trackUri }] },
+          headers: { Authorization: 'Bearer ' + props.token },
+        }
+      )
+      .then((res) => {
+        //TODO: update playlist
+        axios
+          .get('https://api.spotify.com/v1/playlists/' + props.currentPlaylist.id, {
+            headers: { Authorization: 'Bearer ' + props.token },
+          })
+          .then((resp) => {
+            props.setCurrentPlaylist(resp.data)
+          })
+      })
+  }
+
+  const handleMouseEnterLen = () => {
+    setLengthIsHovering(true)
+    setLengthContainerStyle({
+      display: 'flex',
+      width: '33px',
+      justifyContent: 'flex-end',
+      alignItems: 'center',
+      paddingRight: '7px',
+    })
+  }
+  const handleMouseLeaveLen = () => {
+    setLengthIsHovering(false)
+    setLengthContainerStyle({
+      display: 'flex',
+      width: '40px',
+      justifyContent: 'flex-end',
+    })
+  }
+
   // styles
   const flexRowStyle: React.CSSProperties = {
     display: 'flex',
@@ -149,6 +273,14 @@ export const TrackView = (props: trackViewProps) => {
   const heartIconStyle: React.CSSProperties = {
     height: '18px',
     width: '18px',
+  }
+
+  const xIconStyle: React.CSSProperties = {
+    display: 'flex',
+    justifyContent: 'center',
+    height: '14px',
+    width: '14px',
+    fill: '#ffffff',
   }
 
   const playPauseIconStyle: React.CSSProperties = {
@@ -201,8 +333,10 @@ export const TrackView = (props: trackViewProps) => {
   }
 
   const trackNumberStyle: React.CSSProperties = {
-    width: '16px',
-    marginRight: '5px',
+    display: 'flex',
+    justifyContent: 'flex-end',
+    width: '10px',
+    marginRight: '15px',
   }
 
   const trackTitleStyle: React.CSSProperties = {
@@ -225,12 +359,6 @@ export const TrackView = (props: trackViewProps) => {
     marginRight: '15px',
   }
 
-  const lengthContainerStyle: React.CSSProperties = {
-    display: 'flex',
-    width: '40px',
-    justifyContent: 'flex-end',
-  }
-
   // TODO: NEXT SESSION START HERE
 
   // fix styling
@@ -243,8 +371,8 @@ export const TrackView = (props: trackViewProps) => {
     >
       <div className={'trackContainer'} style={trackContainerStyle}>
         <div className={'trackNumberAndInfo'} style={trackNumberAndInfoStyle}>
-          <div className={'trackNumber'} style={trackNumberStyle}>
-            {leftmostIcon}
+          <div className={'trackNumber'} style={trackNumWrapperStyle}>
+            <div style={trackNumStyle}>{leftmostIcon}</div>
           </div>
           <div className={'trackInfoContainer'} style={trackInfoContainerStyle}>
             <img src={props.albumPhotoUrl} style={albumPhotoStyle} />
@@ -281,15 +409,25 @@ export const TrackView = (props: trackViewProps) => {
               <EmptyHeartIcon style={heartIconStyle} onClick={handleLike} />
             )}
           </div>
-          <div className={'lengthContainer'} style={lengthContainerStyle}>
-            {Math.floor((props.trackLength / 1000) % 60) < 10
-              ? Math.floor(props.trackLength / 1000 / 60) +
-                ':' +
-                '0' +
-                Math.floor((props.trackLength / 1000) % 60)
-              : Math.floor(props.trackLength / 1000 / 60) +
-                ':' +
-                Math.floor((props.trackLength / 1000) % 60)}
+
+          <div
+            className={'lengthContainer'}
+            style={lengthContainerStyle}
+            onMouseEnter={handleMouseEnterLen}
+            onMouseLeave={handleMouseLeaveLen}
+          >
+            {lengthIsHovering ? (
+              <XIcon onClick={handleDelete} style={xIconStyle} />
+            ) : Math.floor((props.trackLength / 1000) % 60) < 10 ? (
+              Math.floor(props.trackLength / 1000 / 60) +
+              ':' +
+              '0' +
+              Math.floor((props.trackLength / 1000) % 60)
+            ) : (
+              Math.floor(props.trackLength / 1000 / 60) +
+              ':' +
+              Math.floor((props.trackLength / 1000) % 60)
+            )}
           </div>
         </div>
       </div>

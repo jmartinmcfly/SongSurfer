@@ -30,6 +30,7 @@ export const Intro = (props: IntroProps): JSX.Element => {
     width: '100%',
     height: '100vh',
     color: 'white',
+    fontFamily: 'Times New Roman',
     fontSize: '36px',
     background: 'linear-gradient(to bottom right, #1a1a1a, #0e0e0e)',
   }
@@ -50,7 +51,7 @@ export const Intro = (props: IntroProps): JSX.Element => {
 
   return (
     <div style={introContainerStyle}>
-      <div style={introStyle}>
+      <div className="introStyle" style={introStyle}>
         <Typist
           onTypingDone={() => setTypingDone(true)}
           cursor={{

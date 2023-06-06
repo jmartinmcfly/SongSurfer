@@ -9,6 +9,8 @@ interface playlistViewProps {
   currentPlaylist: any
   player: any
   deviceId: string
+  newlyAddedSongUris: string[]
+  setCurrentPlaylist: React.Dispatch<React.SetStateAction<any>>
 }
 
 // styles
@@ -93,6 +95,8 @@ export const PlaylistView = (props: playlistViewProps) => {
   // if desired, this can be optimized later
   useEffect(() => {
     if (props.currentPlaylist) {
+      // TODO: isNew: figure out by dif - any items not in the last one are new
+
       const newTrackViewComps: JSX.Element[] = props.currentPlaylist.tracks.items.map(
         (item: any, index: number) => {
           let isCurrentTrack: boolean = false
@@ -120,6 +124,8 @@ export const PlaylistView = (props: playlistViewProps) => {
               currentPlaylist={props.currentPlaylist}
               isCurrentTrack={isCurrentTrack}
               isPlaying={isPlaying}
+              newlyAddedSongUris={props.newlyAddedSongUris}
+              setCurrentPlaylist={props.setCurrentPlaylist}
             />
           )
         }
