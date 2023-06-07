@@ -755,6 +755,7 @@ export const MainInterface = (props: MainInterfaceProps) => {
             newlyAddedSongUris={newlyAddedSongUris}
             setCurrentPlaylist={setCurrentPlaylist}
             rerenderOnLikeTrigger={rerenderOnLikeTrigger}
+            setRerenderOnLikeTrigger={setRerenderOnLikeTrigger}
           />
         )}
       </div>

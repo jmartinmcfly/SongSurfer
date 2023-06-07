@@ -145,7 +145,7 @@ export const MusicPlayer = (props: MusicPlayerProps) => {
       .catch((error) => {
         console.log(error)
       })
-  }, [currentTrack])
+  }, [currentTrack, props.reRenderOnLikeTrigger])
 
   // progress tracking
   useEffect(() => {

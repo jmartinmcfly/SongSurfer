@@ -12,6 +12,7 @@ interface playlistViewProps {
   newlyAddedSongUris: string[]
   setCurrentPlaylist: React.Dispatch<React.SetStateAction<any>>
   rerenderOnLikeTrigger: number
+  setRerenderOnLikeTrigger: React.Dispatch<React.SetStateAction<number>>
 }
 
 // styles
@@ -130,7 +131,8 @@ export const PlaylistView = (props: playlistViewProps) => {
               isPlaying={isPlaying}
               newlyAddedSongUris={props.newlyAddedSongUris}
               setCurrentPlaylist={props.setCurrentPlaylist}
-              // rerenderOnLikeTrigger={props.rerenderOnLikeTrigger}
+              rerenderOnLikeTrigger={props.rerenderOnLikeTrigger}
+              setRerenderOnLikeTrigger={props.setRerenderOnLikeTrigger}
             />
           )
         }

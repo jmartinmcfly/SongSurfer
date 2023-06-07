@@ -31,6 +31,8 @@ interface trackViewProps {
   isPlaying: boolean
   newlyAddedSongUris: string[]
   setCurrentPlaylist: React.Dispatch<React.SetStateAction<any>>
+  rerenderOnLikeTrigger: number
+  setRerenderOnLikeTrigger: React.Dispatch<React.SetStateAction<number>>
 }
 
 export const TrackView = (props: trackViewProps) => {
@@ -170,19 +172,27 @@ export const TrackView = (props: trackViewProps) => {
   }
 
   const handleLike = () => {
-    axios.put(
-      'https://api.spotify.com/v1/me/tracks',
-      { ids: [props.trackId] },
-      { headers: { Authorization: 'Bearer ' + props.token } }
-    )
+    axios
+      .put(
+        'https://api.spotify.com/v1/me/tracks',
+        { ids: [props.trackId] },
+        { headers: { Authorization: 'Bearer ' + props.token } }
+      )
+      .then(() => {
+        props.setRerenderOnLikeTrigger(props.rerenderOnLikeTrigger + 1)
+      })
     setIsLiked(true)
   }
 
   const handleUnlike = () => {
-    axios.delete('https://api.spotify.com/v1/me/tracks', {
-      data: { ids: [props.trackId] },
-      headers: { Authorization: 'Bearer ' + props.token },
-    })
+    axios
+      .delete('https://api.spotify.com/v1/me/tracks', {
+        data: { ids: [props.trackId] },
+        headers: { Authorization: 'Bearer ' + props.token },
+      })
+      .then(() => {
+        props.setRerenderOnLikeTrigger(props.rerenderOnLikeTrigger + 1)
+      })
     setIsLiked(false)
   }
 
