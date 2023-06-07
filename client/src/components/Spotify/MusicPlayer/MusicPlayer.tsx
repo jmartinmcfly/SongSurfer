@@ -4,6 +4,8 @@ import PauseIcon from '../../Utils/Svg/pauseIcon.jsx'
 import PlayIcon from '../../Utils/Svg/playIcon.jsx'
 import SkipForwardIcon from '../../Utils/Svg/skipForwardIcon.jsx'
 import SkipBackIcon from '../../Utils/Svg/skipBackIcon.jsx'
+import EmptyHeartIcon from '../../Utils/Svg/emptyHeartIcon.jsx'
+import FullHeartIcon from '../../Utils/Svg/fullHeartIcon.jsx'
 import './MusicPlayer.scss'
 
 // interfaces
@@ -15,9 +17,12 @@ interface MusicPlayerProps {
   // setter for device id from parent
   setDeviceId: React.Dispatch<SetStateAction<string>>
   deviceId: string
+  setRerenderOnLikeTrigger: React.Dispatch<SetStateAction<number>>
+  reRenderOnLikeTrigger: number
 }
 
 interface track {
+  id: string
   name: string
   uri: string
   album: { images: { url: string }[] }
@@ -46,6 +51,7 @@ export const MusicPlayer = (props: MusicPlayerProps) => {
   const [currentTrack, setCurrentTrack] = useState<track | null>(null)
   const [player, setPlayer] = useState<any>(null)
   const [isPlaying, setIsPlaying] = useState(false)
+  const [isLiked, setIsLiked] = useState(false)
   const [active, setActive] = useState(false)
 
   // progress bar
@@ -92,6 +98,7 @@ export const MusicPlayer = (props: MusicPlayerProps) => {
             return
           }
 
+          // TODO: Check if the track is liked
           setCurrentTrack(state.track_window.current_track)
           setIsPlaying(!state.paused)
           console.log(state.track_window.current_track)
@@ -114,6 +121,31 @@ export const MusicPlayer = (props: MusicPlayerProps) => {
       }
     }
   }, [props.token])
+
+  // load likedState
+  useEffect(() => {
+    console.log('likedState updating')
+    console.log(currentTrack)
+    console.log(currentTrack?.id)
+    // get isLiked data from spotify
+    // TODO this request isn't working, the ids are failing somehow
+    const result = axios
+      .get('https://api.spotify.com/v1/me/tracks/contains', {
+        headers: { Authorization: 'Bearer ' + props.token },
+        params: {
+          ids: currentTrack?.id,
+        },
+      })
+      .then((response) => {
+        console.log('SUCEDSSSSSSSSSSSSSSSSSSSSSSSSWS')
+        console.log(response)
+        // create new liked dict
+        setIsLiked(response.data[0])
+      })
+      .catch((error) => {
+        console.log(error)
+      })
+  }, [currentTrack])
 
   // progress tracking
   useEffect(() => {
@@ -185,6 +217,32 @@ export const MusicPlayer = (props: MusicPlayerProps) => {
     }
   }
 
+  // TODO: Like code
+  const handleLike = () => {
+    axios
+      .put(
+        'https://api.spotify.com/v1/me/tracks',
+        { ids: [currentTrack?.id] },
+        { headers: { Authorization: 'Bearer ' + props.token } }
+      )
+      .then(() => {
+        props.setRerenderOnLikeTrigger(props.reRenderOnLikeTrigger + 1)
+      })
+    setIsLiked(true)
+  }
+
+  const handleUnlike = () => {
+    axios
+      .delete('https://api.spotify.com/v1/me/tracks', {
+        data: { ids: [currentTrack?.id] },
+        headers: { Authorization: 'Bearer ' + props.token },
+      })
+      .then(() => {
+        props.setRerenderOnLikeTrigger(props.reRenderOnLikeTrigger + 1)
+      })
+    setIsLiked(false)
+  }
+
   const handleSeekMouseDown = () => {
     setIsDragging(true)
   }
@@ -253,7 +311,7 @@ export const MusicPlayer = (props: MusicPlayerProps) => {
     display: 'flex',
     flexDirection: 'row',
     alignItems: 'center',
-    width: '200px',
+    width: '180px',
     whiteSpace: 'nowrap',
     overflow: 'hidden',
     textOverflow: 'ellipsis',
@@ -286,6 +344,7 @@ export const MusicPlayer = (props: MusicPlayerProps) => {
 
   const controlStyle: React.CSSProperties = {
     display: 'flex',
+    position: 'relative',
     flexDirection: 'column',
     justifyContent: 'center',
     alignItems: 'center',
@@ -311,8 +370,23 @@ export const MusicPlayer = (props: MusicPlayerProps) => {
     ...songProgressStyle,
   }
 
+  const heartIconStyle: React.CSSProperties = {
+    height: '26px',
+    width: '26px',
+    marginLeft: '10px',
+    marginTop: '15px',
+    fill: '#ffffff',
+  }
+
+  const heartIconWrapperStyle: React.CSSProperties = {
+    position: 'absolute',
+    right: '65px',
+    top: '0px',
+  }
+
   // jsx
 
+  // TODO: add like icon
   return (
     <div className={'playerDiv'} style={playerDivStyle}>
       <div className={'track'} style={trackStyle}>
@@ -405,6 +479,13 @@ export const MusicPlayer = (props: MusicPlayerProps) => {
                 Math.floor(((duration - progress) / 1000) % 60)}
           </div>
         </div>
+      </div>
+      <div style={heartIconWrapperStyle}>
+        {isLiked ? (
+          <FullHeartIcon onClick={handleUnlike} style={heartIconStyle} />
+        ) : (
+          <EmptyHeartIcon onClick={handleLike} style={heartIconStyle} />
+        )}
       </div>
     </div>
   )

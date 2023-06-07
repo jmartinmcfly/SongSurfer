@@ -11,6 +11,7 @@ interface playlistViewProps {
   deviceId: string
   newlyAddedSongUris: string[]
   setCurrentPlaylist: React.Dispatch<React.SetStateAction<any>>
+  rerenderOnLikeTrigger: number
 }
 
 // styles
@@ -44,6 +45,7 @@ export const PlaylistView = (props: playlistViewProps) => {
   // fetch liked songs data
   useEffect(() => {
     if (props.currentPlaylist) {
+      console.log('TRIGGERED')
       let songIds: string[] = []
 
       // extract song ids from playlist
@@ -67,6 +69,7 @@ export const PlaylistView = (props: playlistViewProps) => {
             const isLiked: boolean = response.data[i]
             newLikedDict[songId] = isLiked
           }
+          console.log(newLikedDict)
           setLikedDict(newLikedDict)
         })
 
@@ -88,7 +91,7 @@ export const PlaylistView = (props: playlistViewProps) => {
         setIsPlaying(!state.paused)
       })
     }
-  }, [props.currentPlaylist])
+  }, [props.currentPlaylist, props.rerenderOnLikeTrigger])
 
   // construct a list of jsx TrackView components to render
   // NOTE: this maybe won't load until the "Check User's Saved Tracks" call returns
@@ -96,6 +99,7 @@ export const PlaylistView = (props: playlistViewProps) => {
   useEffect(() => {
     if (props.currentPlaylist) {
       // TODO: isNew: figure out by dif - any items not in the last one are new
+      console.log('a new dict was made')
 
       const newTrackViewComps: JSX.Element[] = props.currentPlaylist.tracks.items.map(
         (item: any, index: number) => {
@@ -107,7 +111,7 @@ export const PlaylistView = (props: playlistViewProps) => {
           return (
             <TrackView
               token={props.token}
-              key={item.track.id + index.toString()}
+              key={item.track.id + index.toString() + likedDict[item.track.id].toString()}
               trackNumber={index + 1}
               albumPhotoUrl={item.track.album.images[0].url}
               trackName={item.track.name}
@@ -126,6 +130,7 @@ export const PlaylistView = (props: playlistViewProps) => {
               isPlaying={isPlaying}
               newlyAddedSongUris={props.newlyAddedSongUris}
               setCurrentPlaylist={props.setCurrentPlaylist}
+              // rerenderOnLikeTrigger={props.rerenderOnLikeTrigger}
             />
           )
         }

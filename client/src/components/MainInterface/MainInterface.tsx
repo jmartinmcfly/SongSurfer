@@ -53,6 +53,8 @@ export const MainInterface = (props: MainInterfaceProps) => {
   const [numNotificationTextList, setNumNotificationTextList] = useState<string[]>([])
   const [isFading, setIsFading] = useState<boolean>(false)
 
+  const [rerenderOnLikeTrigger, setRerenderOnLikeTrigger] = useState<number>(0)
+
   // waiting for chat response
   const [isLoading, setIsLoading] = useState<boolean>(false)
 
@@ -224,10 +226,11 @@ export const MainInterface = (props: MainInterfaceProps) => {
     setIsFading(true)
   }
 
-  // TODO: implement and test
   // START HERE: clean out the console.logs
   // then, review this whole compoment and make sure it's all good
   // then, head back to the project plan
+
+  // TODO: Refactor this beast
   const onChatSubmit = async (message: string) => {
     setIsLoading(true)
     console.log('submitting')
@@ -248,9 +251,25 @@ export const MainInterface = (props: MainInterfaceProps) => {
       }
     })
 
+    let trimmedCurrentPlaylist
+
+    if (extractedCurrentPlaylist.length > 20) {
+      let everyX = Math.ceil(extractedCurrentPlaylist.length / 20)
+      trimmedCurrentPlaylist = extractedCurrentPlaylist.filter(
+        (item: any, index: number) => index % everyX == 0
+      )
+    } else {
+      trimmedCurrentPlaylist = extractedCurrentPlaylist
+    }
+
+    console.log('the current playlist length is: ')
+    console.log(extractedCurrentPlaylist.length)
+    console.log('the trimmed playlist length is: ')
+    console.log(trimmedCurrentPlaylist.length)
+
     playlistContext =
       ' This is the playlist as it currently stands: ' +
-      JSON.stringify(extractedCurrentPlaylist) +
+      JSON.stringify(trimmedCurrentPlaylist) +
       playlistContext
 
     const messagePreludeFinal = messagePrelude + playlistContext
@@ -387,6 +406,16 @@ export const MainInterface = (props: MainInterfaceProps) => {
                 }
 
                 if (action.actionType == 'add') {
+                  const spotifyAddTracksNoDups = spotifyTracksFinal.filter((track) => {
+                    return !currentPlaylist.tracks.items.some((item: any) => {
+                      console.log('item.track.uri')
+                      console.log(item)
+                      return item.track.uri == track
+                    })
+                  })
+                  console.log('adding')
+                  console.log(spotifyTracksFinal)
+                  console.log(spotifyAddTracksNoDups)
                   // Add Items to Playlist
                   apiResponse = axios
                     .post(
@@ -394,7 +423,7 @@ export const MainInterface = (props: MainInterfaceProps) => {
                         currentPlaylist.id +
                         '/tracks',
                       {
-                        uris: spotifyTracksFinal,
+                        uris: spotifyAddTracksNoDups,
                       },
                       {
                         headers: { Authorization: 'Bearer ' + accessToken },
@@ -712,6 +741,8 @@ export const MainInterface = (props: MainInterfaceProps) => {
           tracks={{}}
           token={accessToken}
           setSpotifyPlayer={setSpotifyPlayer}
+          setRerenderOnLikeTrigger={setRerenderOnLikeTrigger}
+          reRenderOnLikeTrigger={rerenderOnLikeTrigger}
         />
         <div style={{ marginBottom: '30px' }}></div>
         {spotifyPlayer && (
@@ -723,6 +754,7 @@ export const MainInterface = (props: MainInterfaceProps) => {
             // TODO
             newlyAddedSongUris={newlyAddedSongUris}
             setCurrentPlaylist={setCurrentPlaylist}
+            rerenderOnLikeTrigger={rerenderOnLikeTrigger}
           />
         )}
       </div>

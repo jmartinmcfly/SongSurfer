@@ -65,6 +65,14 @@ export const ChatInput = (props: ChatInputProps) => {
     setHeight(20)
   }
 
+  const handleKeyDown = (event: any) => {
+    if (event.key === 'Enter' && !event.shiftKey) {
+      event.preventDefault() // Prevents the addition of a new line in the text field when pressing enter
+      handleSubmit(null)
+      // Add the code to handle the Enter key press here
+    }
+  }
+
   // Styles:
 
   const sendIconStyle: React.CSSProperties = {
@@ -143,6 +151,7 @@ export const ChatInput = (props: ChatInputProps) => {
         placeholder="Type your message here..."
         rows={1}
         style={inputStyle}
+        onKeyDown={handleKeyDown}
       />
       {!props.isLoading ? (
         <div
