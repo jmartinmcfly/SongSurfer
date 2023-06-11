@@ -33,6 +33,7 @@ interface trackViewProps {
   setCurrentPlaylist: React.Dispatch<React.SetStateAction<any>>
   rerenderOnLikeTrigger: number
   setRerenderOnLikeTrigger: React.Dispatch<React.SetStateAction<number>>
+  setIsNewPlaylist: React.Dispatch<React.SetStateAction<boolean>>
 }
 
 export const TrackView = (props: trackViewProps) => {
@@ -76,10 +77,8 @@ export const TrackView = (props: trackViewProps) => {
   }, [isHovering, props.isCurrentTrack, props.isPlaying])
 
   // handle styling for isNew
-  // TODO: only last number is showing style
   // if two digits, we lose part of the number because the div isn't large enough
   useEffect(() => {
-    console.log('props.newlyAddedSongURIs: ', props.newlyAddedSongUris)
     let isNew = false
     for (const newUri of props.newlyAddedSongUris) {
       // set true if match
@@ -230,6 +229,8 @@ export const TrackView = (props: trackViewProps) => {
           })
           .then((resp) => {
             props.setCurrentPlaylist(resp.data)
+            //TODO: test
+            props.setIsNewPlaylist(true)
           })
       })
   }

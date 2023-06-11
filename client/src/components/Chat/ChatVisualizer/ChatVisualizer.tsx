@@ -144,7 +144,6 @@ export const ChatVisualizer = (props: ChatVisualizerProps) => {
         // if its loading, last message is the loading message
         // TODO: style glitch for first message when it's the only message
         if (!props.isLoading) {
-          console.log('last')
           localChatTextStyle = lastChatTextStyle
           localChatImageContainerStyle = lastImageContainerStyle
           if (chat.role == Role.User) {

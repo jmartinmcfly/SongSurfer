@@ -101,6 +101,7 @@ export const MusicPlayer = (props: MusicPlayerProps) => {
           // TODO: Check if the track is liked
           setCurrentTrack(state.track_window.current_track)
           setIsPlaying(!state.paused)
+          console.log('current track is now:')
           console.log(state.track_window.current_track)
 
           // this happens when we switch the player to a different
@@ -124,9 +125,6 @@ export const MusicPlayer = (props: MusicPlayerProps) => {
 
   // load likedState
   useEffect(() => {
-    console.log('likedState updating')
-    console.log(currentTrack)
-    console.log(currentTrack?.id)
     // get isLiked data from spotify
     // TODO this request isn't working, the ids are failing somehow
     const result = axios
@@ -137,8 +135,6 @@ export const MusicPlayer = (props: MusicPlayerProps) => {
         },
       })
       .then((response) => {
-        console.log('SUCEDSSSSSSSSSSSSSSSSSSSSSSSSWS')
-        console.log(response)
         // create new liked dict
         setIsLiked(response.data[0])
       })

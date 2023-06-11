@@ -36,6 +36,8 @@ export enum Role {
 }
 
 export const MainInterface = (props: MainInterfaceProps) => {
+  let playlistActionsNumber: number = 0
+
   const [openAiApi, setOpenAIApi] = useState<OpenAIApi | null>(null)
 
   const [accessToken, setAccessToken] = useState('')
@@ -48,12 +50,16 @@ export const MainInterface = (props: MainInterfaceProps) => {
   const [newlyAddedSongUris, setNewlyAddedSongUris] = useState<string[]>([])
 
   const [isModified, setIsModified] = useState<boolean>(false)
+  const [rerenderOnModifiedTrigger, setRerenderOnModifiedTrigger] = useState<number>(0)
   const [addedNum, setAddedNum] = useState<Number>(0)
   const [subtractedNum, setSubtractedNum] = useState<Number>(0)
   const [numNotificationTextList, setNumNotificationTextList] = useState<string[]>([])
   const [isFading, setIsFading] = useState<boolean>(false)
 
   const [rerenderOnLikeTrigger, setRerenderOnLikeTrigger] = useState<number>(0)
+  // used to determine whether to modify playlist history in PlaylistView
+  // set when user modifies a playlist via chat or delete button
+  const [isNewPlaylist, setIsNewPlaylist] = useState<boolean>(false)
 
   // waiting for chat response
   const [isLoading, setIsLoading] = useState<boolean>(false)
@@ -80,17 +86,10 @@ export const MainInterface = (props: MainInterfaceProps) => {
 
   // initialize OpenAI API
   useEffect(() => {
-    // TODO: test
-    console.log('initializing OpenAI API')
-    console.log(process.env.OPENAI_API_KEY)
-    console.log(process.env)
     const configuration = new Configuration({
       apiKey: process.env.REACT_APP_OPENAI_API_KEY,
     })
-    console.log('config')
-    console.log(configuration)
     const openai = new OpenAIApi(configuration)
-    console.log(openai)
     setOpenAIApi(openai)
   }, [])
 
@@ -121,6 +120,7 @@ export const MainInterface = (props: MainInterfaceProps) => {
               })
               .then((resp) => {
                 setCurrentPlaylist(resp.data)
+                setIsNewPlaylist(true)
               })
           }
         }
@@ -140,6 +140,7 @@ export const MainInterface = (props: MainInterfaceProps) => {
             )
             .then((resp) => {
               setCurrentPlaylist(resp.data)
+              setIsNewPlaylist(true)
             })
         }
       })
@@ -165,6 +166,9 @@ export const MainInterface = (props: MainInterfaceProps) => {
   // TODO: START HERE
   useEffect(() => {
     if (isModified) {
+      console.log('isModified is true')
+      console.log(addedNum)
+      console.log(subtractedNum)
       let tempDivList = []
       if (addedNum !== 0) {
         tempDivList.push('+ ' + addedNum.toString())
@@ -179,15 +183,11 @@ export const MainInterface = (props: MainInterfaceProps) => {
       setNumNotificationTextList(tempDivList)
 
       // fade out after 5s
-      console.log('timeout')
       setTimeout(() => {
-        console.log('timeout running')
         setIsFading(true)
-        console.log('fading')
 
         // make div not render after fade
         setTimeout(() => {
-          console.log('byebye')
           setIsModified(false)
           setIsFading(false)
           setAddedNum(0)
@@ -195,13 +195,11 @@ export const MainInterface = (props: MainInterfaceProps) => {
         }, 2200)
       }, 5000)
     }
-  }, [isModified])
+  }, [isModified, rerenderOnModifiedTrigger])
 
   // API calls:
 
   async function fetchProfileData(): Promise<any> {
-    console.log('the token for profile is: ')
-    console.log(accessToken)
     const result = await axios.get('https://api.spotify.com/v1/me', {
       headers: { Authorization: 'Bearer ' + accessToken },
     })
@@ -233,10 +231,9 @@ export const MainInterface = (props: MainInterfaceProps) => {
   // TODO: Refactor this beast
   const onChatSubmit = async (message: string) => {
     setIsLoading(true)
-    console.log('submitting')
     // append message prelude
     const messagePrelude =
-      'System message: Please pay extra attention to "actionType". When iterating on a playlist, use "add" to add songs, and "remove" to remove songs. Only use "replace" when starting a totally new playlist. DON\'T follow the remove action with an add action unless EXPLICTLY prompted - this results in duplicates.'
+      'System message: Please pay extra attention to "actionType". When iterating on a playlist, use "add" to add songs, and "remove" to remove songs. Only use "replace" when starting a totally new playlist. DON\'T follow the remove action with an add action unless EXPLICTLY prompted - this results in duplicates. Also, only ever put one JSON object in the response - multiple breaks our software.'
 
     let playlistContext: string = '\nUser: '
 
@@ -261,11 +258,6 @@ export const MainInterface = (props: MainInterfaceProps) => {
     } else {
       trimmedCurrentPlaylist = extractedCurrentPlaylist
     }
-
-    console.log('the current playlist length is: ')
-    console.log(extractedCurrentPlaylist.length)
-    console.log('the trimmed playlist length is: ')
-    console.log(trimmedCurrentPlaylist.length)
 
     playlistContext =
       ' This is the playlist as it currently stands: ' +
@@ -322,7 +314,6 @@ export const MainInterface = (props: MainInterfaceProps) => {
           messages: toSend,
         })
         .then((resp) => {
-          console.log(resp)
           const responseMessage = resp.data.choices[0].message?.content
 
           if (responseMessage) {
@@ -348,6 +339,7 @@ export const MainInterface = (props: MainInterfaceProps) => {
               setIsLoading(false)
             }, 100)
 
+            // TODO: BUG RISK
             if (playlistActions.length == 0) {
               return
             }
@@ -358,7 +350,22 @@ export const MainInterface = (props: MainInterfaceProps) => {
             let addedTotal = 0
             let subtractedTotal = 0
 
+            let actionPromises: Promise<any>[] = []
+
             for (const action of playlistActions) {
+              /*
+              if (action.actionType == 'replace') {
+                // NOTE: This isn't, technically, correct
+                // to be correct we'd need to do a full dif
+                setSubtractedNum(currentPlaylist.tracks.items.length)
+                setAddedNum(action.tracks.length)
+              } else if (action.actionType == 'add') {
+                setAddedNum(action.tracks.length)
+              } else if (action.actionType == 'remove') {
+                setSubtractedNum(action.tracks.length)
+              }
+              */
+
               // list of spotify uris for modifying the playlist
               // TODO START HERE review and continue
               // Search for Item
@@ -391,124 +398,141 @@ export const MainInterface = (props: MainInterfaceProps) => {
               console.log('promiseArray')
               console.log(tracksPromiseArray)
 
-              Promise.all(tracksPromiseArray).then((spotifyTracks) => {
-                console.log('spotify tracks: ')
-                console.log(spotifyTracks)
-                let apiResponse: Promise<any> | null = null
+              let actionPromise = Promise.all(tracksPromiseArray).then(
+                (spotifyTracks) => {
+                  console.log('spotify tracks: ')
+                  console.log(spotifyTracks)
+                  let apiResponse: Promise<any> | null = null
 
-                // filter out bad spotify responses
-                const spotifyTracksFinal = spotifyTracks.filter(
-                  (value) => value !== undefined
-                )
-                if (!currentPlaylist) {
-                  console.error('Current playlist is null')
-                  return
-                }
+                  // filter out bad spotify responses
+                  const spotifyTracksFinal = spotifyTracks.filter(
+                    (value) => value !== undefined
+                  )
+                  if (!currentPlaylist) {
+                    console.error('Current playlist is null')
+                    return
+                  }
 
-                if (action.actionType == 'add') {
-                  const spotifyAddTracksNoDups = spotifyTracksFinal.filter((track) => {
-                    return !currentPlaylist.tracks.items.some((item: any) => {
-                      console.log('item.track.uri')
-                      console.log(item)
-                      return item.track.uri == track
-                    })
-                  })
-                  console.log('adding')
-                  console.log(spotifyTracksFinal)
-                  console.log(spotifyAddTracksNoDups)
-                  // Add Items to Playlist
-                  apiResponse = axios
-                    .post(
-                      'https://api.spotify.com/v1/playlists/' +
-                        currentPlaylist.id +
-                        '/tracks',
-                      {
-                        uris: spotifyAddTracksNoDups,
-                      },
-                      {
-                        headers: { Authorization: 'Bearer ' + accessToken },
-                      }
-                    )
-                    .then((resp) => {
-                      console.log(spotifyTracksFinal)
-                      setNewlyAddedSongUris(spotifyTracksFinal)
-                      setTimeout(() => {
-                        console.log('setting newly added off')
-                        let empty: any[] = []
-                        setNewlyAddedSongUris(empty)
-                      }, 5000)
-
-                      setAddedNum(spotifyTracksFinal.length)
-                      setIsModified(true)
-                      console.log(resp)
-                    })
-                } else if (action.actionType == 'remove') {
-                  // Remove Playlist Items
-                  console.log('remove')
-                  const uriArr: { uri: string }[] = spotifyTracksFinal.map((track) => {
-                    return { uri: track }
-                  })
-                  console.log
-                  apiResponse = axios
-                    .delete(
-                      'https://api.spotify.com/v1/playlists/' +
-                        currentPlaylist.id +
-                        '/tracks',
-                      {
-                        headers: { Authorization: 'Bearer ' + accessToken },
-                        data: { tracks: uriArr },
-                      }
-                    )
-                    .then((resp) => {
-                      setSubtractedNum(spotifyTracksFinal.length)
-                      setIsModified(true)
-                      console.log(resp)
-                    })
-                } else if (action.actionType == 'replace') {
-                  console.log('replace')
-
-                  // Update Playlist Items
-                  apiResponse = axios
-                    .put(
-                      'https://api.spotify.com/v1/playlists/' +
-                        currentPlaylist.id +
-                        '/tracks',
-                      { uris: spotifyTracksFinal },
-                      {
-                        headers: { Authorization: 'Bearer ' + accessToken },
-                      }
-                    )
-                    .then((resp) => {
-                      setNewlyAddedSongUris(spotifyTracksFinal)
-                      setTimeout(() => {
-                        let empty: any[] = []
-                        setNewlyAddedSongUris(empty)
-                      }, 5000)
-                      console.log(resp)
-                      setSubtractedNum(currentPlaylist.tracks.items.length)
-                      setAddedNum(spotifyTracksFinal.length)
-                      setIsModified(true)
-                    })
-                } else {
-                  apiResponse = null
-                  console.error('Invalid action type: ' + action.actionType)
-                }
-
-                // After the calls resolve
-                // Get the new playlist and update current playlist
-                if (apiResponse) {
-                  apiResponse.then((value) => {
-                    axios
-                      .get('https://api.spotify.com/v1/playlists/' + currentPlaylist.id, {
-                        headers: { Authorization: 'Bearer ' + accessToken },
+                  if (action.actionType == 'add') {
+                    const spotifyAddTracksNoDups = spotifyTracksFinal.filter((track) => {
+                      return !currentPlaylist.tracks.items.some((item: any) => {
+                        console.log('item.track.uri')
+                        console.log(item)
+                        return item.track.uri == track
                       })
+                    })
+                    if (spotifyAddTracksNoDups.length == 0) {
+                      alert(
+                        'DJ-GPT tried to add only invalid songs or duplicates. Please try again.'
+                      )
+                    }
+
+                    console.log('adding')
+                    console.log(spotifyTracksFinal)
+                    console.log(spotifyAddTracksNoDups)
+                    // Add Items to Playlist
+                    apiResponse = axios
+                      .post(
+                        'https://api.spotify.com/v1/playlists/' +
+                          currentPlaylist.id +
+                          '/tracks',
+                        {
+                          uris: spotifyAddTracksNoDups,
+                        },
+                        {
+                          headers: { Authorization: 'Bearer ' + accessToken },
+                        }
+                      )
                       .then((resp) => {
-                        setCurrentPlaylist(resp.data)
+                        console.log('started adding')
+                        console.log(spotifyTracksFinal)
+                        setNewlyAddedSongUris(spotifyTracksFinal)
+                        setTimeout(() => {
+                          console.log('setting newly added off')
+                          let empty: any[] = []
+                          setNewlyAddedSongUris(empty)
+                        }, 5000)
+                        setAddedNum(spotifyTracksFinal.length)
+                        setIsModified(true)
+
+                        console.log(resp)
+                        console.log('finished adding')
                       })
-                  })
+                  } else if (action.actionType == 'remove') {
+                    // Remove Playlist Items
+                    console.log('remove')
+                    const uriArr: { uri: string }[] = spotifyTracksFinal.map((track) => {
+                      return { uri: track }
+                    })
+                    console.log
+                    apiResponse = axios
+                      .delete(
+                        'https://api.spotify.com/v1/playlists/' +
+                          currentPlaylist.id +
+                          '/tracks',
+                        {
+                          headers: { Authorization: 'Bearer ' + accessToken },
+                          data: { tracks: uriArr },
+                        }
+                      )
+                      .then((resp) => {
+                        setSubtractedNum(spotifyTracksFinal.length)
+                        setIsModified(true)
+
+                        console.log(resp)
+                      })
+                  } else if (action.actionType == 'replace') {
+                    console.log('replace')
+
+                    // Update Playlist Items
+                    apiResponse = axios
+                      .put(
+                        'https://api.spotify.com/v1/playlists/' +
+                          currentPlaylist.id +
+                          '/tracks',
+                        { uris: spotifyTracksFinal },
+                        {
+                          headers: { Authorization: 'Bearer ' + accessToken },
+                        }
+                      )
+                      .then((resp) => {
+                        setNewlyAddedSongUris(spotifyTracksFinal)
+                        setTimeout(() => {
+                          let empty: any[] = []
+                          setNewlyAddedSongUris(empty)
+                        }, 5000)
+                        console.log(resp)
+                        setSubtractedNum(currentPlaylist.tracks.items.length)
+                        setAddedNum(spotifyTracksFinal.length)
+                        setIsModified(true)
+                      })
+                  } else {
+                    apiResponse = null
+                    console.error('Invalid action type: ' + action.actionType)
+                  }
+
+                  // After the calls resolve
+                  // Get the new playlist and update current playlist
+                  if (apiResponse) {
+                    const apiResponse2 = apiResponse.then((value) => {
+                      axios
+                        .get(
+                          'https://api.spotify.com/v1/playlists/' + currentPlaylist.id,
+                          {
+                            headers: { Authorization: 'Bearer ' + accessToken },
+                          }
+                        )
+                        .then((resp) => {
+                          setCurrentPlaylist(resp.data)
+                          setIsNewPlaylist(true)
+                        })
+                    })
+                  }
                 }
-              })
+              )
             }
+
+            playlistActionsNumber = playlistActions.length
 
             console.log('pre if ')
             console.log('added total:')
@@ -518,8 +542,24 @@ export const MainInterface = (props: MainInterfaceProps) => {
             console.log(resp.data)
           }
         })
+        .then(() => {
+          if (playlistActionsNumber > 0) {
+            console.log('setting is modified')
+            //setIsModified(true)
+          }
+
+          playlistActionsNumber = 0
+        })
         .catch((error) => {
-          console.log(error)
+          if (error.response && error.response.status === 429) {
+            console.log('Too many requests made to the server, please try again later.')
+            alert(
+              'Too many requests made to the server, please try again. If this persists, reload.'
+            )
+            // Additional handling logic for 429 status here
+          } else {
+            console.log(error)
+          }
           setIsLoading(false)
         })
     })
@@ -756,6 +796,12 @@ export const MainInterface = (props: MainInterfaceProps) => {
             setCurrentPlaylist={setCurrentPlaylist}
             rerenderOnLikeTrigger={rerenderOnLikeTrigger}
             setRerenderOnLikeTrigger={setRerenderOnLikeTrigger}
+            isNewPlaylist={isNewPlaylist}
+            setIsNewPlaylist={setIsNewPlaylist}
+            setNewlyAddedSongUris={setNewlyAddedSongUris}
+            setSubtractedNum={setSubtractedNum}
+            setAddedNum={setAddedNum}
+            setIsModified={setIsModified}
           />
         )}
       </div>
