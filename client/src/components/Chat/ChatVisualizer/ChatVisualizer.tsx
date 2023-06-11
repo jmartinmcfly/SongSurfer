@@ -107,10 +107,7 @@ export const ChatVisualizer = (props: ChatVisualizerProps) => {
 
   // reset skippedTyping when a new message appears
   useEffect(() => {
-    if (props.chatHistory.length !== lastSkippedLen) {
-      setSkippedTyping(false)
-      setLastSkippedLen(props.chatHistory.length)
-    }
+    setSkippedTyping(false)
   }, [props.chatHistory])
 
   // autoscroll chatbox to bottom
