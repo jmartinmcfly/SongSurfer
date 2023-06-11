@@ -65,7 +65,6 @@ export const MainInterface = (props: MainInterfaceProps) => {
   const [isLoading, setIsLoading] = useState<boolean>(false)
 
   const location = useLocation()
-
   const mainInterfaceContainerRef = useRef<HTMLDivElement>(null)
 
   // passed to the ChatVisualizer for rendering. Excludes tokens meant for prompt engineering.
@@ -96,15 +95,19 @@ export const MainInterface = (props: MainInterfaceProps) => {
   // fetch profile data once access token is set
   useEffect(() => {
     if (accessToken != '') {
+      console.log('fetching profile data')
       fetchProfileData().then((data) => {
         setProfileData(data)
+        console.log('profile data set')
       })
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [accessToken])
 
   // fetch playlist data once profile data is set
   useEffect(() => {
     if (profileData) {
+      console.log('fetching playlists')
       fetchPlaylists().then((data) => {
         // data.items are simplifiedPlaylistObjects
         const playlists = data.items
@@ -145,6 +148,7 @@ export const MainInterface = (props: MainInterfaceProps) => {
         }
       })
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [profileData])
 
   useEffect(() => {
@@ -160,6 +164,7 @@ export const MainInterface = (props: MainInterfaceProps) => {
         }
       )
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [deviceId])
 
   // handle modifiedNotification
@@ -195,6 +200,7 @@ export const MainInterface = (props: MainInterfaceProps) => {
         }, 2200)
       }, 5000)
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isModified, rerenderOnModifiedTrigger])
 
   // API calls:
@@ -423,7 +429,7 @@ export const MainInterface = (props: MainInterfaceProps) => {
                     })
                     if (spotifyAddTracksNoDups.length == 0) {
                       alert(
-                        'DJ-GPT tried to add only invalid songs or duplicates. Please try again.'
+                        'DF-GPT tried to add only invalid songs or duplicates. Please try again.'
                       )
                     }
 

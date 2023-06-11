@@ -35,7 +35,8 @@ export const AuthHandler = (props: AuthHandlerProps) => {
     } else {
       console.log('no code found')
     }
-  }, [location.search])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   // get token from spotify. Returns the whole data object from spotify's response.
   const fetchToken = async (): Promise<IServiceResponse<any>> => {
@@ -104,7 +105,8 @@ export const AuthHandler = (props: AuthHandlerProps) => {
     }
 
     // clear interval on unmount
-  }, [code, fetchToken, setAccessToken, setRefreshToken])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [code])
 
   // refresh token from spotify. Returns the whole data object from spotify's response.
   const fetchRefreshToken = async (): Promise<IServiceResponse<any>> => {
@@ -164,7 +166,8 @@ export const AuthHandler = (props: AuthHandlerProps) => {
       // 15 minutes * 60 seconds * 1000 milliseconds
       return () => clearInterval(interval)
     }
-  }, [refreshToken, setAccessToken, firstCall, fetchRefreshToken])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [refreshToken])
 
   return <></>
 }

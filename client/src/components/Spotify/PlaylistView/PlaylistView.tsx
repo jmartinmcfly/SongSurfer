@@ -118,6 +118,7 @@ export const PlaylistView = (props: playlistViewProps) => {
         setIsPlaying(!state.paused)
       })
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [props.currentPlaylist, props.rerenderOnLikeTrigger])
 
   // NOTE: this maybe won't load until the "Check User's Saved Tracks" call returns
@@ -184,6 +185,7 @@ export const PlaylistView = (props: playlistViewProps) => {
         console.log('playlistComponentHistory', playlistComponentHistory)
       }
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [likedDict, currentTrack, isPlaying, playlistHistoryIndex, props.currentPlaylist])
 
   const createTrackViewComps = (playlist: any) => {
@@ -287,6 +289,7 @@ export const PlaylistView = (props: playlistViewProps) => {
 
       // TOD; go index by index and reorder
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [playlistHistoryIndex])
 
   const playlistDiff = (

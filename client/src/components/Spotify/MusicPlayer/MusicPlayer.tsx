@@ -121,6 +121,7 @@ export const MusicPlayer = (props: MusicPlayerProps) => {
         })
       }
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [props.token])
 
   // load likedState
@@ -141,12 +142,14 @@ export const MusicPlayer = (props: MusicPlayerProps) => {
       .catch((error) => {
         console.log(error)
       })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentTrack, props.reRenderOnLikeTrigger])
 
   // progress tracking
   useEffect(() => {
     const progressInterval = setInterval(updateProgress, 1000) // Update progress every second
     return () => clearInterval(progressInterval)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [player])
 
   // queries the player SDK to update song progress

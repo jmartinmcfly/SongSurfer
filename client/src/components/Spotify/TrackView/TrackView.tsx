@@ -74,6 +74,7 @@ export const TrackView = (props: trackViewProps) => {
         setLeftmostIcon(<div>{props.trackNumber}</div>)
       }
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isHovering, props.isCurrentTrack, props.isPlaying])
 
   // handle styling for isNew
@@ -143,6 +144,7 @@ export const TrackView = (props: trackViewProps) => {
       setTrackNumWrapperStyle(trackNumberWrapperStyle)
       setTrackNumStyle(trackNumberStyle)
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [props.newlyAddedSongUris])
 
   // event handlers
