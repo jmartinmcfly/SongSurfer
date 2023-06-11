@@ -35,66 +35,7 @@ export const AuthHandler = (props: AuthHandlerProps) => {
     } else {
       console.log('no code found')
     }
-  }, [])
-
-  // fetch the original auth token
-  useEffect(() => {
-    if (code != '') {
-      // check for a more recent access token in local storage
-      if (localStorage.getItem('refreshToken')) {
-        // if there is a refresh token, use it to get a new access token. Happens on page reload.
-        setRefreshToken(localStorage.getItem('refreshToken') || '')
-      } else {
-        console.log('first Call!')
-        // fetch token on first load after redirect
-        setFirstCall(true)
-        fetchToken().then((firstToken: IServiceResponse<any>) => {
-          if (firstToken.success) {
-            console.log('success')
-            setAccessToken(firstToken.payload.access_token)
-            setRefreshToken(firstToken.payload.refresh_token)
-            localStorage.setItem('refreshToken', firstToken.payload.refresh_token)
-          } else {
-            console.log('error getting auth token ' + firstToken.message)
-          }
-        })
-      }
-    }
-
-    // clear interval on unmount
-  }, [code])
-
-  // set a timer for refreshing the token
-  useEffect(() => {
-    console.log('refresh' + refreshToken)
-
-    // if the refreshToken is already in localStorage, call the api right away
-    if (refreshToken !== '') {
-      if (!firstCall) {
-        setFirstCall(true)
-        fetchRefreshToken().then((newToken: IServiceResponse<any>) => {
-          if (newToken.success) {
-            setAccessToken(newToken.payload.access_token)
-          } else {
-            console.log('error refreshing auth token ' + newToken.message)
-          }
-        })
-      }
-
-      // refresh token every 10 minutes
-      const interval = setInterval(() => {
-        fetchRefreshToken().then((newToken: IServiceResponse<any>) => {
-          if (newToken.success) {
-            setAccessToken(newToken.payload.access_token)
-          } else {
-            console.log('error refreshing auth token ' + newToken.message)
-          }
-        })
-      }, 10 * 60 * 1000)
-      // 15 minutes * 60 seconds * 1000 milliseconds
-      return () => clearInterval(interval)
-    }
-  }, [refreshToken])
+  }, [location.search])
 
   // get token from spotify. Returns the whole data object from spotify's response.
   const fetchToken = async (): Promise<IServiceResponse<any>> => {
@@ -138,6 +79,33 @@ export const AuthHandler = (props: AuthHandlerProps) => {
     }
   }
 
+  // fetch the original auth token
+  useEffect(() => {
+    if (code != '') {
+      // check for a more recent access token in local storage
+      if (localStorage.getItem('refreshToken')) {
+        // if there is a refresh token, use it to get a new access token. Happens on page reload.
+        setRefreshToken(localStorage.getItem('refreshToken') || '')
+      } else {
+        console.log('first Call!')
+        // fetch token on first load after redirect
+        setFirstCall(true)
+        fetchToken().then((firstToken: IServiceResponse<any>) => {
+          if (firstToken.success) {
+            console.log('success')
+            setAccessToken(firstToken.payload.access_token)
+            setRefreshToken(firstToken.payload.refresh_token)
+            localStorage.setItem('refreshToken', firstToken.payload.refresh_token)
+          } else {
+            console.log('error getting auth token ' + firstToken.message)
+          }
+        })
+      }
+    }
+
+    // clear interval on unmount
+  }, [code, fetchToken, setAccessToken, setRefreshToken])
+
   // refresh token from spotify. Returns the whole data object from spotify's response.
   const fetchRefreshToken = async (): Promise<IServiceResponse<any>> => {
     const response = await axios.post(
@@ -165,6 +133,38 @@ export const AuthHandler = (props: AuthHandlerProps) => {
       return failureServiceResponse(response.data)
     }
   }
+
+  // set a timer for refreshing the token
+  useEffect(() => {
+    console.log('refresh' + refreshToken)
+
+    // if the refreshToken is already in localStorage, call the api right away
+    if (refreshToken !== '') {
+      if (!firstCall) {
+        setFirstCall(true)
+        fetchRefreshToken().then((newToken: IServiceResponse<any>) => {
+          if (newToken.success) {
+            setAccessToken(newToken.payload.access_token)
+          } else {
+            console.log('error refreshing auth token ' + newToken.message)
+          }
+        })
+      }
+
+      // refresh token every 10 minutes
+      const interval = setInterval(() => {
+        fetchRefreshToken().then((newToken: IServiceResponse<any>) => {
+          if (newToken.success) {
+            setAccessToken(newToken.payload.access_token)
+          } else {
+            console.log('error refreshing auth token ' + newToken.message)
+          }
+        })
+      }, 10 * 60 * 1000)
+      // 15 minutes * 60 seconds * 1000 milliseconds
+      return () => clearInterval(interval)
+    }
+  }, [refreshToken, setAccessToken, firstCall, fetchRefreshToken])
 
   return <></>
 }
