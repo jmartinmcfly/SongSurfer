@@ -116,99 +116,7 @@ export const ChatVisualizer = (props: ChatVisualizerProps) => {
     scrollToBottom()
   }, [chatList])
 
-  // generate the chat list from history
-  useEffect(() => {
-    const chatList = props.chatHistory.map((chat, index) => {
-      let localChatTextStyle = chatTextStyle
-      let localChatImageContainerStyle = chatImageContainerStyle
-      // typing animation for last chat or just chat.content
-      let toReturn: any = chat.content
-
-      // regular rendering
-      if (index == 0) {
-        localChatTextStyle = firstChatTextStyle
-        localChatImageContainerStyle = firstImageContainerStyle
-      }
-
-      // set styles and for last chat item so margins are correct and make animation
-      if (index == props.chatHistory.length - 1) {
-        let avgTypingDelay = 35
-
-        if (props.chatHistory.length == 0) {
-          avgTypingDelay = 55
-        }
-
-        // if its loading, last message is the loading message
-        // TODO: style glitch for first message when it's the only message
-        if (!props.isLoading) {
-          localChatTextStyle = lastChatTextStyle
-          localChatImageContainerStyle = lastImageContainerStyle
-          if (chat.role == Role.User) {
-            // set opposite color
-            setAlternatingBackgroundColor('#444654')
-            toReturn = chat.content
-          } else {
-            setAlternatingBackgroundColor('#343641')
-            // if we haven't skipped typing, render the loading animation
-            if (!skippedTyping) {
-              toReturn = makeTypingAnimation(chat, avgTypingDelay)
-            } else {
-              toReturn = chat.content
-            }
-          }
-        }
-      }
-      // fix border radius bottom left and bottom right on last chat item
-
-      if (chat.role == Role.User) {
-        return (
-          <div
-            className="userChat"
-            style={userStyle}
-            key={index}
-            onClick={handleSkipTyping}
-          >
-            <div style={localChatImageContainerStyle}>
-              <img src={props.userImageUrl} alt="User" style={chatImageStyle} />
-            </div>
-            <p style={localChatTextStyle}>{toReturn}</p>
-          </div>
-        )
-      } else {
-        return (
-          <div
-            className="assistantChat"
-            style={assistantStyle}
-            key={index}
-            onClick={handleSkipTyping}
-          >
-            <div style={localChatImageContainerStyle}>
-              {/*<img src={DJGPT_IMAGE_URL} alt="DJ-GPT" style={chatImageStyle} />*/}
-              <ChatGptIcon style={chatImageStyle} />
-            </div>
-            <p style={localChatTextStyle}>{toReturn}</p>
-          </div>
-        )
-      }
-    })
-
-    if (props.isLoading) {
-      // add loading indicator
-      chatList.push(
-        <div className="assistantChat" style={assistantStyle} key={'loading'}>
-          <div style={chatImageContainerStyle}>
-            {/*<img src={DJGPT_IMAGE_URL} alt="DJ-GPT" style={chatImageStyle} />*/}
-            <ChatGptIcon style={chatImageStyle} />
-          </div>
-          <div className="loading"></div>
-        </div>
-      )
-
-      setAlternatingBackgroundColor('#343641')
-    }
-
-    setChatList(chatList)
-  }, [props.chatHistory, skippedTyping])
+  // NOTE: last useEffect is at the bottom due to declaration order issues
 
   // Handlers:
 
@@ -338,6 +246,112 @@ export const ChatVisualizer = (props: ChatVisualizerProps) => {
     height: '30px',
     borderRadius: '7px',
   }
+
+  // generate the chat list from history
+  useEffect(() => {
+    const chatList = props.chatHistory.map((chat, index) => {
+      let localChatTextStyle = chatTextStyle
+      let localChatImageContainerStyle = chatImageContainerStyle
+      // typing animation for last chat or just chat.content
+      let toReturn: any = chat.content
+
+      // regular rendering
+      if (index == 0) {
+        localChatTextStyle = firstChatTextStyle
+        localChatImageContainerStyle = firstImageContainerStyle
+      }
+
+      // set styles and for last chat item so margins are correct and make animation
+      if (index == props.chatHistory.length - 1) {
+        let avgTypingDelay = 35
+
+        if (props.chatHistory.length == 0) {
+          avgTypingDelay = 55
+        }
+
+        // if its loading, last message is the loading message
+        if (!props.isLoading) {
+          localChatTextStyle = lastChatTextStyle
+          localChatImageContainerStyle = lastImageContainerStyle
+          if (chat.role == Role.User) {
+            // set opposite color
+            setAlternatingBackgroundColor('#444654')
+            toReturn = chat.content
+          } else {
+            setAlternatingBackgroundColor('#343641')
+            // if we haven't skipped typing, render the loading animation
+            if (!skippedTyping) {
+              toReturn = makeTypingAnimation(chat, avgTypingDelay)
+            } else {
+              toReturn = chat.content
+            }
+          }
+        }
+      }
+      // fix border radius bottom left and bottom right on last chat item
+
+      if (chat.role == Role.User) {
+        return (
+          <div
+            className="userChat"
+            style={userStyle}
+            key={index}
+            onClick={handleSkipTyping}
+          >
+            <div style={localChatImageContainerStyle}>
+              <img src={props.userImageUrl} alt="User" style={chatImageStyle} />
+            </div>
+            <p style={localChatTextStyle}>{toReturn}</p>
+          </div>
+        )
+      } else {
+        return (
+          <div
+            className="assistantChat"
+            style={assistantStyle}
+            key={index}
+            onClick={handleSkipTyping}
+          >
+            <div style={localChatImageContainerStyle}>
+              {/*<img src={DJGPT_IMAGE_URL} alt="DJ-GPT" style={chatImageStyle} />*/}
+              <ChatGptIcon style={chatImageStyle} />
+            </div>
+            <p style={localChatTextStyle}>{toReturn}</p>
+          </div>
+        )
+      }
+    })
+
+    if (props.isLoading) {
+      // add loading indicator
+      chatList.push(
+        <div className="assistantChat" style={assistantStyle} key={'loading'}>
+          <div style={chatImageContainerStyle}>
+            {/*<img src={DJGPT_IMAGE_URL} alt="DJ-GPT" style={chatImageStyle} />*/}
+            <ChatGptIcon style={chatImageStyle} />
+          </div>
+          <div className="loading"></div>
+        </div>
+      )
+
+      setAlternatingBackgroundColor('#343641')
+    }
+
+    setChatList(chatList)
+  }, [
+    props.chatHistory,
+    skippedTyping,
+    props.isLoading,
+    props.userImageUrl,
+    chatTextStyle,
+    firstChatTextStyle,
+    lastChatTextStyle,
+    chatImageContainerStyle,
+    firstImageContainerStyle,
+    lastImageContainerStyle,
+    assistantStyle,
+    chatImageStyle,
+  ])
 
   // TODO undo test
   return (
