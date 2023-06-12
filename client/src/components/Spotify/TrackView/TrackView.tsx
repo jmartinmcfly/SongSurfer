@@ -31,15 +31,18 @@ interface trackViewProps {
   isPlaying: boolean
   newlyAddedSongUris: string[]
   setCurrentPlaylist: React.Dispatch<React.SetStateAction<any>>
+  updatePlaylistHistory: (playlist: any) => void
   rerenderOnLikeTrigger: number
   setRerenderOnLikeTrigger: React.Dispatch<React.SetStateAction<number>>
-  setIsNewPlaylist: React.Dispatch<React.SetStateAction<boolean>>
 }
 
 export const TrackView = (props: trackViewProps) => {
-  const [trackNumWrapperStyle, setTrackNumWrapperStyle] = useState<React.CSSProperties>(
-    {}
-  )
+  const [trackNumWrapperStyle, setTrackNumWrapperStyle] = useState<React.CSSProperties>({
+    display: 'flex',
+    justifyContent: 'flex-end',
+    width: '10px',
+    marginRight: '15px',
+  })
   const [trackNumStyle, setTrackNumStyle] = useState<React.CSSProperties>({})
   const [isHovering, setIsHovering] = useState<boolean>(false)
   const [lengthIsHovering, setLengthIsHovering] = useState<boolean>(false)
@@ -58,6 +61,8 @@ export const TrackView = (props: trackViewProps) => {
   // determine how to handle play / pause / number for render
   useEffect(() => {
     if (props.isCurrentTrack) {
+      console.log('is current track playing?')
+      console.log(props.isPlaying)
       if (props.isPlaying) {
         setLeftmostIcon(
           <PauseIcon style={playPauseIconStyle} onClick={handleTogglePlay} />
@@ -78,7 +83,6 @@ export const TrackView = (props: trackViewProps) => {
   }, [isHovering, props.isCurrentTrack, props.isPlaying])
 
   // handle styling for isNew
-  // if two digits, we lose part of the number because the div isn't large enough
   useEffect(() => {
     let isNew = false
     for (const newUri of props.newlyAddedSongUris) {
@@ -230,9 +234,7 @@ export const TrackView = (props: trackViewProps) => {
             headers: { Authorization: 'Bearer ' + props.token },
           })
           .then((resp) => {
-            props.setCurrentPlaylist(resp.data)
-            //TODO: test
-            props.setIsNewPlaylist(true)
+            props.updatePlaylistHistory(resp.data)
           })
       })
   }

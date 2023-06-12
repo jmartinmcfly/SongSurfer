@@ -13,14 +13,18 @@ import './PlaylistView.scss'
 interface playlistViewProps {
   token: string
   currentPlaylist: any
+  playlistHistory: any[]
+  playlistHistoryIndex: number
+  prevPlaylistHistoryIndex: number
+  setPlaylistHistoryIndex: React.Dispatch<React.SetStateAction<number>>
+  setPrevPlaylistHistoryIndex: React.Dispatch<React.SetStateAction<number>>
   player: any
   deviceId: string
   newlyAddedSongUris: string[]
   setCurrentPlaylist: React.Dispatch<React.SetStateAction<any>>
+  updatePlaylistHistory: (playlist: any) => void
   rerenderOnLikeTrigger: number
   setRerenderOnLikeTrigger: React.Dispatch<React.SetStateAction<number>>
-  isNewPlaylist: boolean
-  setIsNewPlaylist: React.Dispatch<React.SetStateAction<boolean>>
   setNewlyAddedSongUris: React.Dispatch<React.SetStateAction<string[]>>
   setSubtractedNum: React.Dispatch<React.SetStateAction<Number>>
   setAddedNum: React.Dispatch<React.SetStateAction<Number>>
@@ -56,12 +60,6 @@ export const PlaylistView = (props: playlistViewProps) => {
 
   // TODO: Store a history of playlists to allow for back and forward button
   // store the currentPlaylist.track.items for each step in the history
-  const [playlistHistory, setPlaylistHistory] = useState<any[]>([])
-  const [playlistComponentHistory, setPlaylistComponentHistory] = useState<
-    JSX.Element[][]
-  >([])
-  const [playlistHistoryIndex, setPlaylistHistoryIndex] = useState<number>(0)
-  const [playlistHistoryPrevIndex, setPlaylistHistoryPrevIndex] = useState<number>(0)
   const [isBackButtonHovered, setIsBackButtonHovered] = useState<boolean>(false)
   const [isForwardButtonHovered, setIsForwardButtonHovered] = useState<boolean>(false)
 
@@ -71,14 +69,15 @@ export const PlaylistView = (props: playlistViewProps) => {
 
   // fetch liked songs data
   useEffect(() => {
-    if (props.currentPlaylist) {
+    if (props.playlistHistory.length > 0) {
       let songIds: string[] = []
 
       // extract song ids from playlist
-      for (const item of props.currentPlaylist.tracks.items) {
+      for (const item of props.playlistHistory[props.playlistHistoryIndex].tracks.items) {
         songIds.push(item.track.id)
       }
 
+      // TODO: handle race condition on multiple requests
       // get isLiked data from spotify
       const result = axios
         .get('https://api.spotify.com/v1/me/tracks/contains', {
@@ -119,74 +118,20 @@ export const PlaylistView = (props: playlistViewProps) => {
       })
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [props.currentPlaylist, props.rerenderOnLikeTrigger])
+  }, [props.playlistHistory, props.playlistHistoryIndex, props.rerenderOnLikeTrigger])
 
-  // NOTE: this maybe won't load until the "Check User's Saved Tracks" call returns
-  // if desired, this can be optimized later
+  // TODO
 
-  // modifies playlist history and playlist component history when
-  // a playlist is modified via chat or delete
+  // update the track view components when the current playing song changes
   useEffect(() => {
-    if (props.currentPlaylist) {
-      // construct a list of jsx TrackView components to render
-      const newTrackViewComps: JSX.Element[] = createTrackViewComps(props.currentPlaylist)
-
+    if (props.playlistHistory.length > 0) {
+      const newTrackViewComps: JSX.Element[] = createTrackViewComps(
+        props.playlistHistory[props.playlistHistoryIndex]
+      )
       setTrackViewComps(newTrackViewComps)
-
-      // runs once for every new playlist
-      if (props.isNewPlaylist) {
-        console.log('new playlist')
-        props.setIsNewPlaylist(false)
-
-        if (playlistHistory.length == 0) {
-          console.log('initializing history')
-          setPlaylistHistory([props.currentPlaylist])
-          setPlaylistComponentHistory([newTrackViewComps])
-          setPlaylistHistoryIndex(0)
-        } else if (
-          // if the current playlist is the same as the current index in history, do nothing
-          // NOTE: branch may not be needed, although my catch
-          // edge case where the playlist isn't modified because of failed spotify api call
-          // NOTE: do we need to setTrackViewComps here?
-          _.isEqual(props.currentPlaylist, playlistHistory[playlistHistoryIndex])
-        ) {
-          // do nothing
-        } else if (playlistHistoryIndex == playlistHistory.length - 1) {
-          // if we're at the front of the history and the playlist had changed
-          // add the new playlist to the history
-          console.log('adding to history')
-          console.log(playlistHistory)
-          console.log(props.currentPlaylist)
-          setPlaylistHistory([...playlistHistory, props.currentPlaylist])
-          setPlaylistComponentHistory([...playlistComponentHistory, newTrackViewComps])
-          setPlaylistHistoryPrevIndex(playlistHistoryIndex)
-          setPlaylistHistoryIndex(playlistHistoryIndex + 1)
-        } else {
-          // if we're in the middle of the history and the playlist had changed
-          // remove all playlists after the current index and add the new playlist
-          const truncatedPlaylistHistory = playlistHistory.slice(
-            0,
-            playlistHistoryIndex + 1
-          )
-          const truncatedPlaylistComponentHistory = playlistComponentHistory.slice(
-            0,
-            playlistHistoryIndex + 1
-          )
-          setPlaylistHistory([...truncatedPlaylistHistory, props.currentPlaylist])
-          setPlaylistComponentHistory([
-            ...truncatedPlaylistComponentHistory,
-            newTrackViewComps,
-          ])
-          setPlaylistHistoryPrevIndex(playlistHistoryIndex)
-          setPlaylistHistoryIndex(playlistHistoryIndex + 1)
-        }
-
-        console.log('playlistHistory', playlistHistory)
-        console.log('playlistComponentHistory', playlistComponentHistory)
-      }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [likedDict, currentTrack, isPlaying, playlistHistoryIndex, props.currentPlaylist])
+  }, [currentTrack, isPlaying, props.newlyAddedSongUris])
 
   const createTrackViewComps = (playlist: any) => {
     const newTrackViewComps: JSX.Element[] = playlist.tracks.items.map(
@@ -213,14 +158,14 @@ export const PlaylistView = (props: playlistViewProps) => {
             trackId={item.track.id}
             player={props.player}
             deviceId={props.deviceId}
-            currentPlaylist={props.currentPlaylist}
+            currentPlaylist={props.playlistHistory[props.playlistHistoryIndex]}
             isCurrentTrack={isCurrentTrack}
             isPlaying={isPlaying}
             newlyAddedSongUris={props.newlyAddedSongUris}
             setCurrentPlaylist={props.setCurrentPlaylist}
+            updatePlaylistHistory={props.updatePlaylistHistory}
             rerenderOnLikeTrigger={props.rerenderOnLikeTrigger}
             setRerenderOnLikeTrigger={props.setRerenderOnLikeTrigger}
-            setIsNewPlaylist={props.setIsNewPlaylist}
           />
         )
       }
@@ -229,103 +174,22 @@ export const PlaylistView = (props: playlistViewProps) => {
     return newTrackViewComps
   }
 
-  // handles when user pages through the history
-  // playlistHistoryIndex is guaranteed to be valid
+  // update the track view components when the playlist history
+  // or playlist history index changes
+
   useEffect(() => {
-    // props.setCurrentPlaylist(playlistHistory[playlistHistoryIndex])
-    // triggers immediate rerender before api calls resolve
-    //TODO: start here
-    console.log('playlistHistoryIndex', playlistHistoryIndex)
-    console.log('playlistHistoryPrevIndex', playlistHistoryPrevIndex)
-    console.log('playlistHistory', playlistHistory)
+    console.log('the history and index')
+    console.log(props.playlistHistory)
+    console.log(props.playlistHistoryIndex)
 
-    if (playlistHistory[playlistHistoryIndex]) {
+    if (props.playlistHistory.length > 0) {
       const newTrackViewComps: JSX.Element[] = createTrackViewComps(
-        playlistHistory[playlistHistoryIndex]
+        props.playlistHistory[props.playlistHistoryIndex]
       )
-
       setTrackViewComps(newTrackViewComps)
     }
-
-    // update the spotify playlist to match what is showing
-    // dif the playlists to find add and delete
-    const lastPlaylist = playlistHistory[playlistHistoryPrevIndex]
-    const currentPlaylist = playlistHistory[playlistHistoryIndex]
-
-    if (lastPlaylist && currentPlaylist) {
-      const trackUris = currentPlaylist.tracks.items.map((item: any) => item.track.uri)
-      // Add Items to Playlist
-      // Update Playlist Items
-      const apiResponse = axios
-        .put(
-          'https://api.spotify.com/v1/playlists/' + currentPlaylist.id + '/tracks',
-          { uris: currentPlaylist.tracks.items.map((item: any) => item.track.uri) },
-          {
-            headers: { Authorization: 'Bearer ' + props.token },
-          }
-        )
-        .then((resp) => {
-          axios
-            .get('https://api.spotify.com/v1/playlists/' + currentPlaylist.id, {
-              headers: { Authorization: 'Bearer ' + props.token },
-            })
-            .then((resp) => {
-              props.setCurrentPlaylist(resp.data)
-              const diff = playlistDiff(lastPlaylist, currentPlaylist)
-
-              console.log('the diff is ', diff.addedTrackUris)
-              props.setNewlyAddedSongUris(diff.addedTrackUris)
-              //props.setSubtractedNum(diff.deletedTrackUris.length)
-              // props.setAddedNum(diff.addedTrackUris.length)
-              //props.setIsModified(true)
-
-              setTimeout(() => {
-                let empty: any[] = []
-                // props.setNewlyAddedSongUris(empty)
-              }, 5000)
-            })
-          // set newly added uris based on diff
-        })
-
-      // TOD; go index by index and reorder
-    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [playlistHistoryIndex])
-
-  const playlistDiff = (
-    prevPlaylist: any,
-    currPlaylist: any
-  ): { addedTrackUris: string[]; deletedTrackUris: string[] } => {
-    const prevTrackIds = prevPlaylist.tracks.items.map((item: any) => {
-      return item.track.uri
-    })
-    const currTrackIds = currPlaylist.tracks.items.map((item: any) => {
-      return item.track.uri
-    })
-
-    const addedTrackIds = _.difference(currTrackIds, prevTrackIds)
-    const deletedTrackIds = _.difference(prevTrackIds, currTrackIds)
-
-    const addedTracks = currPlaylist.tracks.items.filter((item: any) => {
-      return addedTrackIds.includes(item.track.uri)
-    })
-    const deletedTracks = prevPlaylist.tracks.items.filter((item: any) => {
-      return deletedTrackIds.includes(item.track.uri)
-    })
-
-    const addedTrackUris = addedTracks.map((item: any) => {
-      return item.track.uri
-    })
-
-    const deletedTrackUris = deletedTracks.map((item: any) => {
-      return item.track.uri
-    })
-
-    console.log('addedTracks', addedTracks)
-    console.log('deletedTracks', deletedTracks)
-
-    return { addedTrackUris, deletedTrackUris }
-  }
+  }, [props.playlistHistoryIndex, props.playlistHistory])
 
   // for deep copying objects
   const deepCopy = (obj: any) => {
@@ -337,35 +201,39 @@ export const PlaylistView = (props: playlistViewProps) => {
   // TODO: Reload spotify playlist data when the changes history
 
   const handleHistoryBackClick = () => {
-    if (playlistHistoryIndex > 0) {
-      setPlaylistHistoryPrevIndex(playlistHistoryIndex)
-      setPlaylistHistoryIndex(playlistHistoryIndex - 1)
-      if (playlistHistoryIndex - 1 == 0) {
+    if (props.playlistHistoryIndex > 0) {
+      props.setPrevPlaylistHistoryIndex(props.playlistHistoryIndex)
+      props.setPlaylistHistoryIndex(props.playlistHistoryIndex - 1)
+      if (props.playlistHistoryIndex - 1 == 0) {
         setIsBackButtonHovered(false)
       }
+      console.log('back')
+      console.log(props.playlistHistoryIndex - 1)
       // props.setCurrentPlaylist(playlistHistory[playlistHistoryIndex - 1])
     }
   }
 
   const handleHistoryForwardClick = () => {
-    if (playlistHistoryIndex < playlistHistory.length - 1) {
-      setPlaylistHistoryPrevIndex(playlistHistoryIndex)
-      setPlaylistHistoryIndex(playlistHistoryIndex + 1)
-      if (playlistHistoryIndex + 1 == playlistHistory.length - 1) {
+    if (props.playlistHistoryIndex < props.playlistHistory.length - 1) {
+      props.setPrevPlaylistHistoryIndex(props.playlistHistoryIndex)
+      props.setPlaylistHistoryIndex(props.playlistHistoryIndex + 1)
+      if (props.playlistHistoryIndex + 1 == props.playlistHistory.length - 1) {
         setIsForwardButtonHovered(false)
       }
+      console.log('forward')
+      console.log(props.playlistHistoryIndex + 1)
       // props.setCurrentPlaylist(playlistHistory[playlistHistoryIndex + 1])
     }
   }
 
   const handleMouseEnterBackButton = () => {
-    if (playlistHistory.length > 1 && playlistHistoryIndex > 0) {
+    if (props.playlistHistory.length > 1 && props.playlistHistoryIndex > 0) {
       setIsBackButtonHovered(true)
     }
   }
 
   const handleMouseEnterForwardButton = () => {
-    if (playlistHistoryIndex < playlistHistory.length - 1) {
+    if (props.playlistHistoryIndex < props.playlistHistory.length - 1) {
       setIsForwardButtonHovered(true)
     }
   }
