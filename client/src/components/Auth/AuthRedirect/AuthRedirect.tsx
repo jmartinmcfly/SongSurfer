@@ -24,6 +24,8 @@ export const AuthRedirect = (props: AuthRedirectProps) => {
       redirect_uri: props.redirectUri,
       scope: props.scope,
     }
+    // navigate to spotify login page
+    // it will redirect to the redirect_uri with the code in the url
     const uri = window.location.replace(
       props.authEndpoint + '?' + querystring.stringify(params)
     )

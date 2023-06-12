@@ -40,7 +40,6 @@ export const AuthHandler = (props: AuthHandlerProps) => {
 
   // get token from spotify. Returns the whole data object from spotify's response.
   const fetchToken = async (): Promise<IServiceResponse<any>> => {
-    // TODO: figure out what the client secret is
     try {
       console.log(
         process.env.REACT_APP_CLIENT_ID + ':' + process.env.REACT_APP_CLIENT_SECRET
@@ -52,7 +51,7 @@ export const AuthHandler = (props: AuthHandlerProps) => {
           client_id: process.env.REACT_APP_CLIENT_ID,
           grant_type: 'authorization_code',
           code: code,
-          redirect_uri: 'http://localhost:3000/main',
+          redirect_uri: 'https://songsurfer.netlify.app/main',
         },
         {
           headers: {

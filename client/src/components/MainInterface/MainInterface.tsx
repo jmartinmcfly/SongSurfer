@@ -99,6 +99,7 @@ export const MainInterface = (props: MainInterfaceProps) => {
       fetchProfileData().then((data) => {
         setProfileData(data)
         console.log('profile data set')
+        console.log(data)
       })
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -458,7 +459,7 @@ export const MainInterface = (props: MainInterfaceProps) => {
                           let empty: any[] = []
                           setNewlyAddedSongUris(empty)
                         }, 5000)
-                        setAddedNum(spotifyTracksFinal.length)
+                        setAddedNum(spotifyAddTracksNoDups.length)
                         setIsModified(true)
 
                         console.log(resp)
@@ -586,6 +587,10 @@ export const MainInterface = (props: MainInterfaceProps) => {
     truncChatHistory: { role: Role; content: string }[]
   ): Promise<{ role: Role; content: string }[]> => {
     try {
+      console.log('trimming tokens')
+      console.log(message)
+      console.log(truncChatHistory)
+
       const url: string = process.env.REACT_APP_OPENAI_PYTHON_API_URL + '/trim-tokens'
       console.log('url')
       console.log(url)
@@ -617,6 +622,8 @@ export const MainInterface = (props: MainInterfaceProps) => {
           return resp.data.trimmedMessages
         }
       })
+      console.log('trimmedHistory')
+      console.log(trimmedHistory)
       return trimmedHistory
     } catch (e) {
       console.error(e)
