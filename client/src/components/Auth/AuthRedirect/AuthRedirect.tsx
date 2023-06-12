@@ -2,13 +2,13 @@ import React, { useEffect } from 'react'
 import axios from 'axios'
 import uniqid from 'uniqid'
 import querystring from 'query-string'
+import { redirect } from 'react-router'
 
 interface AuthRedirectProps {
   authEndpoint: string
   state: string
   clientId: string | undefined
   scope: string
-  redirectUri: string
 }
 
 export const AuthRedirect = (props: AuthRedirectProps) => {
@@ -17,11 +17,13 @@ export const AuthRedirect = (props: AuthRedirectProps) => {
     // props.setState(newState)
     console.log('state is :')
     console.log(props.state)
+    console.log('redirect uri is:')
+    console.log(process.env.REDIRECT_URI)
     const params = {
       client_id: props.clientId,
       response_type: 'code',
       state: props.state,
-      redirect_uri: props.redirectUri,
+      redirect_uri: process.env.REACT_APP_REDIRECT_URI,
       scope: props.scope,
     }
     // navigate to spotify login page

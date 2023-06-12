@@ -18,12 +18,14 @@ export const RouteContainer = (props: RouteContainerProps) => {
   const [isLoading, setIsLoading] = useState(true)
   const [state, setState] = useState('')
 
+  console.log('redirect uri is:')
+  console.log(process.env.REACT_APP_REDIRECT_URI)
+  console.log(process.env.REACT_APP_CLIENT_ID)
+
   // [2] Constant variables
   /** Url for react-router-dom responsive URL */
   const CLIENT_ID = process.env.REACT_APP_CLIENT_ID
 
-  const DEV_REDIRECT_URI = 'http://localhost:3000/main'
-  const REDIRECT_URI = 'https://songsurfer.netlify.app/main'
   const AUTH_ENDPOINT = 'https://accounts.spotify.com/authorize'
   const scope =
     'user-read-private user-read-email ' +
@@ -72,7 +74,6 @@ export const RouteContainer = (props: RouteContainerProps) => {
               <AuthRedirect
                 authEndpoint={AUTH_ENDPOINT}
                 clientId={CLIENT_ID}
-                redirectUri={REDIRECT_URI}
                 scope={scope}
                 state={state}
               />
