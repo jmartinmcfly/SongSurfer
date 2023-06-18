@@ -101,8 +101,6 @@ export const MusicPlayer = (props: MusicPlayerProps) => {
           // TODO: Check if the track is liked
           setCurrentTrack(state.track_window.current_track)
           setIsPlaying(!state.paused)
-          console.log('current track is now:')
-          console.log(state.track_window.current_track)
 
           // this happens when we switch the player to a different
 

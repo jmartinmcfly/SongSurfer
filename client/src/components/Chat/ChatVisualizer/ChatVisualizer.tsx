@@ -107,7 +107,6 @@ export const ChatVisualizer = (props: ChatVisualizerProps) => {
 
   // reset skippedTyping when a new message appears
   useEffect(() => {
-    console.log('loop check')
     if (props.chatHistory.length !== lastSkippedLen) {
       setSkippedTyping(false)
       setLastSkippedLen(props.chatHistory.length)

@@ -49,7 +49,6 @@ const playlistTracksStyle: React.CSSProperties = {
 }
 
 export const PlaylistView = (props: playlistViewProps) => {
-  //TODO reset state after testing
   const [playlistImageUrl, setPlaylistImageUrl] = useState('test')
   const [playlistName, setPlaylistName] = useState('test')
   const [currentTrack, setCurrentTrack] = useState<any>(null)
@@ -58,7 +57,6 @@ export const PlaylistView = (props: playlistViewProps) => {
   const [likedDict, setLikedDict] = useState<Record<string, boolean>>({})
   const [trackViewComps, setTrackViewComps] = useState<JSX.Element[]>([])
 
-  // TODO: Store a history of playlists to allow for back and forward button
   // store the currentPlaylist.track.items for each step in the history
   const [isBackButtonHovered, setIsBackButtonHovered] = useState<boolean>(false)
   const [isForwardButtonHovered, setIsForwardButtonHovered] = useState<boolean>(false)
@@ -68,9 +66,15 @@ export const PlaylistView = (props: playlistViewProps) => {
   // hooks
 
   // fetch liked songs data
+  // TODO: Start here
   useEffect(() => {
-    if (props.playlistHistory.length > 0) {
+    if (
+      props.playlistHistory.length > 0 &&
+      props.playlistHistory.length > props.playlistHistoryIndex
+    ) {
       let songIds: string[] = []
+
+      // history is truncating or index is getting extended
 
       // extract song ids from playlist
       for (const item of props.playlistHistory[props.playlistHistoryIndex].tracks.items) {
@@ -128,7 +132,10 @@ export const PlaylistView = (props: playlistViewProps) => {
       const newTrackViewComps: JSX.Element[] = createTrackViewComps(
         props.playlistHistory[props.playlistHistoryIndex]
       )
+      console.log('setting track view Comps')
       setTrackViewComps(newTrackViewComps)
+      console.log('currentIndex')
+      console.log(props.playlistHistoryIndex)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentTrack, isPlaying, props.newlyAddedSongUris])
@@ -139,8 +146,8 @@ export const PlaylistView = (props: playlistViewProps) => {
         let isCurrentTrack: boolean = false
         if (currentTrack) {
           isCurrentTrack = currentTrack.name == item.track.name
+          console.log(isCurrentTrack)
         }
-
         return (
           <TrackView
             token={props.token}
@@ -163,7 +170,10 @@ export const PlaylistView = (props: playlistViewProps) => {
             isPlaying={isPlaying}
             newlyAddedSongUris={props.newlyAddedSongUris}
             setCurrentPlaylist={props.setCurrentPlaylist}
-            updatePlaylistHistory={props.updatePlaylistHistory}
+            updatePlaylistHistory={(playlist) => {
+              props.updatePlaylistHistory(playlist)
+              console.log('updating playlist history in trackView')
+            }}
             rerenderOnLikeTrigger={props.rerenderOnLikeTrigger}
             setRerenderOnLikeTrigger={props.setRerenderOnLikeTrigger}
           />
@@ -182,7 +192,10 @@ export const PlaylistView = (props: playlistViewProps) => {
     console.log(props.playlistHistory)
     console.log(props.playlistHistoryIndex)
 
-    if (props.playlistHistory.length > 0) {
+    if (
+      props.playlistHistory.length > 0 &&
+      props.playlistHistory.length < props.playlistHistoryIndex
+    ) {
       const newTrackViewComps: JSX.Element[] = createTrackViewComps(
         props.playlistHistory[props.playlistHistoryIndex]
       )
@@ -204,6 +217,10 @@ export const PlaylistView = (props: playlistViewProps) => {
     if (props.playlistHistoryIndex > 0) {
       props.setPrevPlaylistHistoryIndex(props.playlistHistoryIndex)
       props.setPlaylistHistoryIndex(props.playlistHistoryIndex - 1)
+      console.log('setting index to:')
+      console.log(props.playlistHistoryIndex - 1)
+      console.log('from:')
+      console.log(props.playlistHistoryIndex)
       if (props.playlistHistoryIndex - 1 == 0) {
         setIsBackButtonHovered(false)
       }
@@ -215,6 +232,8 @@ export const PlaylistView = (props: playlistViewProps) => {
 
   const handleHistoryForwardClick = () => {
     if (props.playlistHistoryIndex < props.playlistHistory.length - 1) {
+      console.log('setting index')
+      console.log(props.playlistHistoryIndex + 1)
       props.setPrevPlaylistHistoryIndex(props.playlistHistoryIndex)
       props.setPlaylistHistoryIndex(props.playlistHistoryIndex + 1)
       if (props.playlistHistoryIndex + 1 == props.playlistHistory.length - 1) {
