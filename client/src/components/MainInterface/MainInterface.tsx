@@ -22,6 +22,8 @@ import { Intro } from '../Intro/Intro'
 import './MainInterface.scss'
 import { exec } from 'child_process'
 
+/* eslint-disable react-hooks/exhaustive-deps */
+
 interface MainInterfaceProps {
   state: string
 }
