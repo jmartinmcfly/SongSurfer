@@ -140,6 +140,7 @@ export const MusicPlayer = (props: MusicPlayerProps) => {
       .catch((error) => {
         console.log(error)
       })
+
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentTrack, props.reRenderOnLikeTrigger])
 

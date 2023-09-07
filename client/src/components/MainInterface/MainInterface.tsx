@@ -254,7 +254,7 @@ export const MainInterface = (props: MainInterfaceProps) => {
   ): Promise<{ role: Role; content: string }[]> => {
     // append message prelude
     const messagePrelude =
-      'System message: Please pay extra attention to "actionType". When iterating on a playlist, use "add" to add songs, and "remove" to remove songs. Only use "replace" when starting a totally new playlist. DON\'T follow the remove action with an add action unless EXPLICTLY prompted - this results in duplicates. Also, only ever put one JSON object in the response - multiple breaks our software.'
+      'System message: Please pay extra attention to "actionType". When iterating on a playlist, use "add" to add songs, and "remove" to remove songs. Only use "replace" when starting a totally new playlist. DON\'T follow the remove action with an add action unless EXPLICTLY prompted - this results in duplicates. Also, only ever put one JSON object in the response - multiple breaks our software. Please add a natural language description after the JSON.'
 
     let playlistContext: string = '\nUser: '
 
@@ -504,6 +504,7 @@ export const MainInterface = (props: MainInterfaceProps) => {
     }
 
     generateMessage(message).then((toSend) => {
+      console.log('toSend: ' + message)
       // call openai chat api on finalMessage
       openAiApi
         .createChatCompletion({
@@ -512,9 +513,10 @@ export const MainInterface = (props: MainInterfaceProps) => {
         })
         .then((resp) => {
           const responseMessage = resp.data.choices[0].message?.content
+          console.log(responseMessage)
 
           if (responseMessage) {
-            console.log('response message:')
+            console.log('response message after ' + message + ': ')
             console.log(responseMessage)
 
             // set trunc chat history to keep in system prompts for GPT-3.5's context
@@ -696,8 +698,10 @@ export const MainInterface = (props: MainInterfaceProps) => {
     const parsed1 = message.replace(pattern, '\n\n') // Replace with double new lines
     const pattern2 = /(\s*)$/ //Matches trailing newlines and spaces
     const parsed2 = parsed1.replace(pattern2, '') // Replace with no trailing newlines or spaces
+    const pattern3 = /^\s+/ // Matches leading space
+    const parsed3 = parsed2.replace(pattern3, '') // Replace with no leading space
 
-    return parsed2
+    return parsed3
   }
 
   // trims out tokens to prevent model from overloading its ~4200 token limit
@@ -773,10 +777,14 @@ export const MainInterface = (props: MainInterfaceProps) => {
   ): { playlistActions: PlaylistAction[]; parsedResponseMessage: string } => {
     try {
       const { jsonObject, beforeJson, afterJson } = splitJsonFromString(responseMessage)
-      const playlistActions = jsonObject.actionList
+      const playlistActions: PlaylistAction[] = jsonObject.actionList
       // TODO: check formatting of parsed response message
-      const parsedResponseMessage = cleanExtraNewLines(beforeJson + afterJson)
+      let parsedResponseMessage = cleanExtraNewLines(beforeJson + afterJson)
 
+      let returnMessage: string = parsedResponseMessage
+      if (parsedResponseMessage.length == 0) {
+        let parsedResponseMessage = 'Here you go!'
+      }
       return { playlistActions, parsedResponseMessage }
     } catch (error) {
       let playlistActions: PlaylistAction[] = []

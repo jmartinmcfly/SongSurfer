@@ -184,6 +184,7 @@ export const TrackView = (props: trackViewProps) => {
         { headers: { Authorization: 'Bearer ' + props.token } }
       )
       .then(() => {
+        console.log('handling like')
         props.setRerenderOnLikeTrigger(props.rerenderOnLikeTrigger + 1)
       })
     setIsLiked(true)
@@ -196,6 +197,7 @@ export const TrackView = (props: trackViewProps) => {
         headers: { Authorization: 'Bearer ' + props.token },
       })
       .then(() => {
+        console.log('handling unlike')
         props.setRerenderOnLikeTrigger(props.rerenderOnLikeTrigger + 1)
       })
     setIsLiked(false)

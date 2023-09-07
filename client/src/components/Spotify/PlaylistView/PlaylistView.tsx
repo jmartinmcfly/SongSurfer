@@ -73,7 +73,7 @@ export const PlaylistView = (props: playlistViewProps) => {
       props.playlistHistory.length > props.playlistHistoryIndex
     ) {
       let songIds: string[] = []
-
+      console.log('in liked songs effect')
       // history is truncating or index is getting extended
 
       // extract song ids from playlist
