@@ -568,6 +568,7 @@ export const MainInterface = (props: MainInterfaceProps) => {
   }
 
   // diff the playlists to find newlyAdded when history changes
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     let timeoutId: number | any = null
 
@@ -601,7 +602,7 @@ export const MainInterface = (props: MainInterfaceProps) => {
 
   // update the spotify playlist to match what is showing on the screen
   // after history changes
-  // TODO: Start here
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     const currentPlaylist = playlistHistory[playlistHistoryIndex]
     console.log('setting spotify backend')
