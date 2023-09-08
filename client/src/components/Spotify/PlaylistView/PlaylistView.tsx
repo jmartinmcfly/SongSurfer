@@ -362,14 +362,14 @@ export const PlaylistView = (props: playlistViewProps) => {
   }
 
   const historyButtonStyle: React.CSSProperties = {
-    width: '12px',
-    height: '12px',
+    width: '16px',
+    height: '16px',
     fill: '#9b9b9b',
   }
 
   const historyBackButtonStyle: React.CSSProperties = {
-    width: '12px',
-    height: '12px',
+    width: '16px',
+    height: '16px',
     fill: '#9b9b9b',
   }
 

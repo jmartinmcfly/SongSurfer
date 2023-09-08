@@ -45,6 +45,8 @@ export const AuthHandler = (props: AuthHandlerProps) => {
         process.env.REACT_APP_CLIENT_ID + ':' + process.env.REACT_APP_CLIENT_SECRET
       )
 
+      console.log('code is: ' + code)
+
       const response = await axios.post(
         'https://accounts.spotify.com/api/token',
         {
@@ -84,6 +86,7 @@ export const AuthHandler = (props: AuthHandlerProps) => {
     if (code != '') {
       // check for a more recent access token in local storage
       if (localStorage.getItem('refreshToken')) {
+        console.log('refresh token found')
         // if there is a refresh token, use it to get a new access token. Happens on page reload.
         setRefreshToken(localStorage.getItem('refreshToken') || '')
       } else {
